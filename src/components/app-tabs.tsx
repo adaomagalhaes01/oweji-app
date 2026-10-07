@@ -1,31 +1,33 @@
 import { NativeTabs } from 'expo-router/unstable-native-tabs';
-import { useColorScheme } from 'react-native';
-
-import { Colors } from '@/constants/theme';
+import { Palette } from '@/constants/palette';
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
-
   return (
     <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.backgroundElement}
-      labelStyle={{ selected: { color: colors.text } }}>
+      backgroundColor={Palette.surface}
+      indicatorColor={Palette.softPink}
+      tintColor={Palette.primaryDark}
+      labelStyle={{ default: { color: Palette.textSecondary }, selected: { color: Palette.primaryDark } }}>
       <NativeTabs.Trigger name="index">
-        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/home.png')}
-          renderingMode="template"
-        />
+        <NativeTabs.Trigger.Label>Início</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon md={{ default: 'home', selected: 'home' }} sf={{ default: 'house', selected: 'house.fill' }} />
       </NativeTabs.Trigger>
 
       <NativeTabs.Trigger name="explore">
-        <NativeTabs.Trigger.Label>Explore</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon
-          src={require('@/assets/images/tabIcons/explore.png')}
-          renderingMode="template"
-        />
+        <NativeTabs.Trigger.Label>Categorias</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon md={{ default: 'search', selected: 'search' }} sf={{ default: 'square.grid.2x2', selected: 'square.grid.2x2.fill' }} />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="cart">
+        <NativeTabs.Trigger.Label>Carrinho</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon md={{ default: 'shopping_cart', selected: 'shopping_cart' }} sf={{ default: 'bag', selected: 'bag.fill' }} />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="favorites">
+        <NativeTabs.Trigger.Label>Favoritos</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon md={{ default: 'favorite_border', selected: 'favorite' }} sf={{ default: 'heart', selected: 'heart.fill' }} />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="profile">
+        <NativeTabs.Trigger.Label>Perfil</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon md={{ default: 'person_outline', selected: 'person' }} sf={{ default: 'person.crop.circle', selected: 'person.crop.circle.fill' }} />
       </NativeTabs.Trigger>
     </NativeTabs>
   );

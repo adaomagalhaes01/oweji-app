@@ -1,61 +1,70 @@
 import { Image } from 'expo-image';
 import * as SplashScreen from 'expo-splash-screen';
-import { useState } from 'react';
-import { Dimensions, StyleSheet, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { Dimensions, StyleSheet, Text, View } from 'react-native';
 import Animated, { Easing, Keyframe } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
 const INITIAL_SCALE_FACTOR = Dimensions.get('screen').height / 90;
 const DURATION = 600;
+const SPLASH_HOLD_DURATION = 2500;
+const SPLASH_EXIT_DURATION = 850;
+
+const splashIntro = new Keyframe({
+  0: { opacity: 0, transform: [{ scale: 1.025 }] },
+  100: { opacity: 1, transform: [{ scale: 1 }], easing: Easing.out(Easing.cubic) },
+});
+
+const splashExit = new Keyframe({
+  0: { opacity: 1, transform: [{ scale: 1 }] },
+  100: { opacity: 0, transform: [{ scale: 0.985 }], easing: Easing.out(Easing.cubic) },
+});
 
 export function AnimatedSplashOverlay() {
   const [animate, setAnimate] = useState(false);
   const [visible, setVisible] = useState(true);
 
+  useEffect(() => {
+    SplashScreen.hideAsync().catch(() => undefined);
+    const timer = setTimeout(() => setAnimate(true), SPLASH_HOLD_DURATION);
+    return () => clearTimeout(timer);
+  }, []);
+
   if (!visible) return null;
-
-  const splashKeyframe = new Keyframe({
-    0: {
-      transform: [{ scale: 1 }],
-      opacity: 1,
-    },
-    20: {
-      opacity: 1,
-    },
-    70: {
-      opacity: 0,
-      easing: Easing.elastic(0.7),
-    },
-    100: {
-      opacity: 0,
-      transform: [{ scale: 1 }],
-      easing: Easing.elastic(0.7),
-    },
-  });
-
-  const image = <Image style={styles.image} source={require('@/assets/images/expo-logo.png')} />;
 
   return animate ? (
     <Animated.View
-      entering={splashKeyframe.duration(DURATION).withCallback((finished) => {
+      key="splash-exit"
+      entering={splashExit.duration(SPLASH_EXIT_DURATION).withCallback((finished) => {
         'worklet';
         if (finished) {
           scheduleOnRN(setVisible, false);
         }
       })}
       style={styles.splashOverlay}>
-      {image}
+      <SplashBrandContent />
     </Animated.View>
   ) : (
-    <View
-      onLayout={() => {
-        SplashScreen.hideAsync().finally(() => {
-          setAnimate(true);
-        });
-      }}
-      style={styles.splashOverlay}>
-      {image}
-    </View>
+    <Animated.View key="splash-content" entering={splashIntro.duration(550)} style={styles.splashOverlay}>
+      <SplashBrandContent />
+    </Animated.View>
+  );
+}
+
+export function SplashBrandContent() {
+  return (
+    <>
+      <Image source={require('@/assets/products/splesh.jpeg')} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityLabel="Retrato de uma mulher negra" />
+      <View style={styles.splashShade} />
+      <View style={styles.splashCenter}>
+        <View style={styles.splashMark}><Text style={styles.markLetter}>O</Text></View>
+        <Text style={styles.wordmark}>OWEJI</Text>
+        <View style={styles.splashRule} />
+        <Text style={styles.splashTagline}>Vista-se de si.</Text>
+        <Text style={styles.splashCaption}>MARKETPLACE DE MODA</Text>
+      </View>
+      <View style={styles.splashBottom}><View style={styles.splashDot} /><View style={[styles.splashDot, styles.splashDotMuted]} /><View style={[styles.splashDot, styles.splashDotMuted]} /></View>
+    </>
   );
 }
 
@@ -140,9 +149,26 @@ const styles = StyleSheet.create({
   },
   splashOverlay: {
     ...StyleSheet.absoluteFill,
-    backgroundColor: '#208AEF',
+    backgroundColor: '#5C3442',
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 1000,
   },
+  wordmark: {
+    color: '#FFFFFF',
+    fontFamily: 'Poppins_700Bold',
+    fontSize: 31,
+    letterSpacing: 8,
+    marginTop: 17,
+  },
+  splashShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(48, 20, 33, 0.48)' },
+  splashCenter: { alignItems: 'center', justifyContent: 'center', marginTop: -30 },
+  splashMark: { width: 66, height: 66, borderRadius: 33, borderWidth: 1, borderColor: 'rgba(255,255,255,0.75)', alignItems: 'center', justifyContent: 'center' },
+  markLetter: { color: '#FFFFFF', fontFamily: 'Poppins_400Regular', fontSize: 36, lineHeight: 42 },
+  splashRule: { width: 32, height: 1, backgroundColor: 'rgba(255,255,255,0.8)', marginTop: 14 },
+  splashTagline: { color: '#FFFFFF', fontFamily: 'Poppins_500Medium', fontSize: 15, marginTop: 12, letterSpacing: 0.5 },
+  splashCaption: { color: 'rgba(255,255,255,0.78)', fontFamily: 'Poppins_600SemiBold', fontSize: 8, letterSpacing: 2, marginTop: 8 },
+  splashBottom: { position: 'absolute', bottom: 58, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  splashDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: '#FFFFFF' },
+  splashDotMuted: { backgroundColor: 'rgba(255,255,255,0.5)' },
 });
