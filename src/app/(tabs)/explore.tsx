@@ -8,8 +8,10 @@ import { ProductFilterSheet, type ProductPriceRange, type ProductSortOption } fr
 import { Palette } from '@/constants/palette';
 import { categories } from '@/features/products/data';
 import { getProductCatalog } from '@/features/products/catalog';
-import type { Product } from '@/features/products/types';
+import type { Product, ProductCondition } from '@/features/products/types';
 import { useShopStore } from '@/store/shop-store';
+import { productConditionOptions } from '@/features/products/conditions';
+import { ProductConditionBadge } from '@/components/products/product-condition-badge';
 
 export default function CategoriesScreen() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -17,20 +19,22 @@ export default function CategoriesScreen() {
   const [sortOption, setSortOption] = useState<ProductSortOption>('featured');
   const [priceRange, setPriceRange] = useState<ProductPriceRange>('all');
   const [availableOnly, setAvailableOnly] = useState(false);
+  const [condition, setCondition] = useState<ProductCondition | 'all'>('all');
   const sellerProducts = useShopStore((state) => state.products);
   const catalog = useMemo(() => getProductCatalog(sellerProducts), [sellerProducts]);
   const activeLabel = categories.find((category) => category.id === activeCategory)?.label ?? 'Tudo';
   const categoryProducts = useMemo(() => {
     const result = catalog.filter((product) => {
       const matchesCategory = activeCategory === 'all' || product.category === activeCategory;
+      const matchesCondition = condition === 'all' || product.condition === condition;
       const matchesPrice = priceRange === 'all' || (priceRange === 'under-1000' && product.price < 1000) || (priceRange === '1000-2000' && product.price >= 1000 && product.price <= 2000) || (priceRange === 'over-2000' && product.price > 2000);
-      return matchesCategory && matchesPrice && (!availableOnly || product.available);
+      return matchesCategory && matchesCondition && matchesPrice && (!availableOnly || product.available);
     });
     if (sortOption === 'price-asc') return result.sort((left, right) => left.price - right.price);
     if (sortOption === 'price-desc') return result.sort((left, right) => right.price - left.price);
     if (sortOption === 'rating') return result.sort((left, right) => right.rating - left.rating);
     return result;
-  }, [activeCategory, availableOnly, catalog, priceRange, sortOption]);
+  }, [activeCategory, availableOnly, catalog, condition, priceRange, sortOption]);
 
   const renderProduct = ({ item }: { item: Product }) => <ProductCard product={item} />;
 
@@ -66,15 +70,19 @@ export default function CategoriesScreen() {
                 );
               })}
             </ScrollView>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
+              <Pressable accessibilityRole="button" accessibilityState={{ selected: condition === 'all' }} onPress={() => setCondition('all')} style={[styles.conditionChip, condition === 'all' && styles.conditionChipActive]}><Text style={[styles.conditionAll, condition === 'all' && styles.conditionAllActive]}>Todos os estados</Text></Pressable>
+              {productConditionOptions.map((option) => <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected: condition === option.value }} onPress={() => setCondition(option.value)} style={[styles.conditionChip, condition === option.value && styles.conditionChipActive]}><ProductConditionBadge condition={option.value} compact /></Pressable>)}
+            </ScrollView>
             <View style={styles.resultHeader}>
               <Text style={styles.resultTitle}>{activeLabel}</Text>
-              <View style={styles.resultActions}><Text style={styles.resultCount}>{categoryProducts.length} peças</Text><Pressable accessibilityRole="button" accessibilityLabel="Filtrar e ordenar produtos" onPress={() => setFiltersVisible(true)} style={styles.filterButton}><SlidersHorizontal size={16} color={Palette.primaryDark} />{(sortOption !== 'featured' || availableOnly || priceRange !== 'all') ? <View style={styles.filterDot} /> : null}<Text style={styles.filterLabel}>Filtrar</Text></Pressable></View>
+              <View style={styles.resultActions}><Text style={styles.resultCount}>{categoryProducts.length} peças</Text><Pressable accessibilityRole="button" accessibilityLabel="Filtrar e ordenar produtos" onPress={() => setFiltersVisible(true)} style={styles.filterButton}><SlidersHorizontal size={16} color={Palette.primaryDark} />{(sortOption !== 'featured' || availableOnly || priceRange !== 'all' || condition !== 'all') ? <View style={styles.filterDot} /> : null}<Text style={styles.filterLabel}>Filtrar</Text></Pressable></View>
             </View>
           </View>
         }
         ListEmptyComponent={<View style={styles.empty}><Text style={styles.emptyTitle}>Nenhuma peça nesta seleção</Text><Text style={styles.emptySubtitle}>Experimente outra categoria ou altere os filtros.</Text></View>}
       />
-      <ProductFilterSheet visible={filtersVisible} sortOption={sortOption} availableOnly={availableOnly} priceRange={priceRange} onSortChange={setSortOption} onAvailabilityChange={setAvailableOnly} onPriceRangeChange={setPriceRange} onClear={() => { setSortOption('featured'); setAvailableOnly(false); setPriceRange('all'); }} onClose={() => setFiltersVisible(false)} />
+      <ProductFilterSheet visible={filtersVisible} sortOption={sortOption} availableOnly={availableOnly} priceRange={priceRange} condition={condition} onConditionChange={setCondition} onSortChange={setSortOption} onAvailabilityChange={setAvailableOnly} onPriceRangeChange={setPriceRange} onClear={() => { setSortOption('featured'); setAvailableOnly(false); setPriceRange('all'); setCondition('all'); }} onClose={() => setFiltersVisible(false)} />
     </SafeAreaView>
   );
 }
@@ -90,6 +98,10 @@ const styles = StyleSheet.create({
   categoryChipActive: { backgroundColor: Palette.primary, borderColor: Palette.primary },
   categoryText: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
   categoryTextActive: { color: Palette.surface },
+  conditionChip: { minHeight: 31, justifyContent: 'center', paddingHorizontal: 8, borderRadius: 17, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
+  conditionChipActive: { borderColor: Palette.primary, backgroundColor: Palette.softPink },
+  conditionAll: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 9 },
+  conditionAllActive: { color: Palette.primaryDark },
   resultHeader: { marginHorizontal: 20, marginBottom: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   resultActions: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   resultTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 17 },

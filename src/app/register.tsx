@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import * as SecureStore from 'expo-secure-store';
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, Phone, Store, UserRound } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -6,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/palette';
 import { useProfileStore } from '@/store/profile-store';
+import { getPasswordKey } from '@/features/auth/password';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -18,9 +20,12 @@ export default function RegisterScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const updateProfile = useProfileStore((state) => state.updateProfile);
+  const setSignedIn = useProfileStore((state) => state.setSignedIn);
   const valid = useMemo(() => name.trim().length >= 3 && /^\S+@\S+\.\S+$/.test(email) && phone.trim().length >= 8 && password.length >= 6 && password === confirmation && (accountType === 'customer' || storeName.trim().length >= 2), [name, email, phone, password, confirmation, accountType, storeName]);
-  const createAccount = () => {
+  const createAccount = async () => {
+    if (Platform.OS !== 'web') await SecureStore.setItemAsync(getPasswordKey(email), password);
     updateProfile({ name: name.trim(), email: email.trim(), phone: phone.trim(), accountType, storeName: accountType === 'merchant' ? storeName.trim() : '' });
+    setSignedIn(true);
     router.replace(accountType === 'merchant' ? '/shop' : '/');
   };
   return (

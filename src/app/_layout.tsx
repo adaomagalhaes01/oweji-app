@@ -30,6 +30,11 @@ export default function RootLayout() {
         <Stack.Screen name="register" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="shop" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="checkout" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="orders" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="orders/[id]" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="addresses" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="security" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="splash" options={{ animation: 'fade' }} />
       </Stack>
       <AppToast />

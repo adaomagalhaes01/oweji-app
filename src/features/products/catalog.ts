@@ -17,6 +17,7 @@ export function getProductCatalog(sellerProducts: ShopProduct[]): Product[] {
       colors: ['#E98A9A'],
       rating: 0,
       available: true,
+      condition: item.condition ?? 'good-used',
     })),
   ];
 }

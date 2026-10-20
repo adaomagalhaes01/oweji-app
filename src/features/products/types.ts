@@ -1,3 +1,5 @@
+export type ProductCondition = 'new' | 'semi-new' | 'good-used';
+
 export type Product = {
   id: string;
   name: string;
@@ -9,6 +11,7 @@ export type Product = {
   colors: string[];
   rating: number;
   available: boolean;
+  condition: ProductCondition;
 };
 
 export type Category = {

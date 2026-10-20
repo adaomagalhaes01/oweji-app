@@ -5,6 +5,7 @@ import { memo } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette } from '@/constants/palette';
+import { ProductConditionBadge } from '@/components/products/product-condition-badge';
 import { formatPrice } from '@/features/products/data';
 import type { Product } from '@/features/products/types';
 import { useFavoritesStore } from '@/store/favorites-store';
@@ -23,6 +24,7 @@ function ProductCardComponent({ product }: ProductCardProps) {
         <Pressable accessibilityRole="button" accessibilityLabel={`Ver detalhes de ${product.name}`} onPress={() => router.push({ pathname: '/product/[id]', params: { id: product.id } })} style={styles.imagePressable}>
           <Image source={product.image} style={styles.image} contentFit="cover" transition={180} />
         </Pressable>
+        <View pointerEvents="none" style={styles.conditionBadge}><ProductConditionBadge condition={product.condition} /></View>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={isFavorite ? `Remover ${product.name} dos favoritos` : `Adicionar ${product.name} aos favoritos`}
@@ -51,6 +53,7 @@ const styles = StyleSheet.create({
   imageWrap: { aspectRatio: 0.78, overflow: 'hidden', borderRadius: 18, backgroundColor: Palette.softPink },
   image: { width: '100%', height: '100%' },
   imagePressable: { width: '100%', height: '100%' },
+  conditionBadge: { position: 'absolute', top: 10, left: 10, maxWidth: '78%' },
   favoriteButton: { position: 'absolute', top: 10, right: 10, width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.94)' },
   pressed: { opacity: 0.75, transform: [{ scale: 0.96 }] },
   details: { paddingTop: 10 },

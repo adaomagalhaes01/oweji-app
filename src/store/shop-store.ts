@@ -1,6 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import type { ProductCondition } from '@/features/products/types';
 
 export type ShopImageKey = 'pink' | 'linen' | 'red' | 'white';
 
@@ -10,6 +11,7 @@ export type ShopProduct = {
   description: string;
   price: number;
   imageKey: ShopImageKey;
+  condition: ProductCondition;
   createdAt: number;
 };
 

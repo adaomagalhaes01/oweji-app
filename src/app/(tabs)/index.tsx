@@ -18,11 +18,13 @@ import { ProductFilterSheet, type ProductPriceRange, type ProductSortOption } fr
 import { Palette } from '@/constants/palette';
 import { categories } from '@/features/products/data';
 import { getProductCatalog } from '@/features/products/catalog';
-import type { Product } from '@/features/products/types';
+import type { Product, ProductCondition } from '@/features/products/types';
 import { useCartStore } from '@/store/cart-store';
 import { useNotificationStore } from '@/store/notification-store';
 import { useProfileStore } from '@/store/profile-store';
 import { useShopStore } from '@/store/shop-store';
+import { productConditionOptions } from '@/features/products/conditions';
+import { ProductConditionBadge } from '@/components/products/product-condition-badge';
 
 const horizontalPadding = 20;
 
@@ -33,27 +35,30 @@ export default function HomeScreen() {
   const [sortOption, setSortOption] = useState<ProductSortOption>('featured');
   const [priceRange, setPriceRange] = useState<ProductPriceRange>('all');
   const [availableOnly, setAvailableOnly] = useState(false);
+  const [condition, setCondition] = useState<ProductCondition | 'all'>('all');
   const sellerProducts = useShopStore((state) => state.products);
   const catalog = useMemo(() => getProductCatalog(sellerProducts), [sellerProducts]);
   const cartCount = useCartStore((state) => state.items.reduce((count, item) => count + item.quantity, 0));
   const unreadCount = useNotificationStore((state) => state.notifications.filter((item) => !item.read).length);
   const userName = useProfileStore((state) => state.name);
+  const avatarUri = useProfileStore((state) => state.avatarUri);
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLocaleLowerCase('pt-AO');
     const result = catalog.filter((product) => {
       const matchesCategory = activeCategory === 'all' || product.category === activeCategory;
+      const matchesCondition = condition === 'all' || product.condition === condition;
       const matchesQuery =
         normalizedQuery.length === 0 ||
         `${product.name} ${product.category}`.toLocaleLowerCase('pt-AO').includes(normalizedQuery);
       const matchesPrice = priceRange === 'all' || (priceRange === 'under-1000' && product.price < 1000) || (priceRange === '1000-2000' && product.price >= 1000 && product.price <= 2000) || (priceRange === 'over-2000' && product.price > 2000);
-      return matchesCategory && matchesQuery && matchesPrice && (!availableOnly || product.available);
+      return matchesCategory && matchesCondition && matchesQuery && matchesPrice && (!availableOnly || product.available);
     });
     if (sortOption === 'price-asc') return result.sort((left, right) => left.price - right.price);
     if (sortOption === 'price-desc') return result.sort((left, right) => right.price - left.price);
     if (sortOption === 'rating') return result.sort((left, right) => right.rating - left.rating);
     return result;
-  }, [activeCategory, availableOnly, catalog, priceRange, query, sortOption]);
+  }, [activeCategory, availableOnly, catalog, condition, priceRange, query, sortOption]);
 
   const renderProduct = ({ item }: { item: Product }) => <ProductCard product={item} />;
 
@@ -72,8 +77,11 @@ export default function HomeScreen() {
             <ShoppingBag size={19} color={Palette.text} />
             {cartCount > 0 ? <View style={styles.cartBadge}><Text style={styles.cartBadgeText}>{cartCount > 9 ? '9+' : cartCount}</Text></View> : null}
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Abrir perfil" onPress={() => router.push('/profile')} style={styles.headerIcon}>
-            <UserRound size={19} color={Palette.primaryDark} />
+          <Pressable accessibilityRole="button" accessibilityLabel={`Abrir perfil de ${userName}, disponível`} onPress={() => router.push('/profile')} style={styles.profileButton}>
+            <View style={styles.profileAvatarWrap}>
+              {avatarUri ? <Image source={{ uri: avatarUri }} style={styles.headerAvatar} contentFit="cover" /> : <View style={styles.headerAvatarFallback}><UserRound size={17} color={Palette.primaryDark} /></View>}
+              <View style={styles.onlineIndicator} />
+            </View>
           </Pressable>
         </View>
       </View>
@@ -133,6 +141,10 @@ export default function HomeScreen() {
                 );
               })}
             </ScrollView>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
+              <Pressable accessibilityRole="button" accessibilityState={{ selected: condition === 'all' }} onPress={() => setCondition('all')} style={[styles.conditionChip, condition === 'all' && styles.conditionChipActive]}><Text style={[styles.conditionAll, condition === 'all' && styles.conditionAllActive]}>Todos os estados</Text></Pressable>
+              {productConditionOptions.map((option) => <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected: condition === option.value }} onPress={() => setCondition(option.value)} style={[styles.conditionChip, condition === option.value && styles.conditionChipActive]}><ProductConditionBadge condition={option.value} compact /></Pressable>)}
+            </ScrollView>
 
             <View style={styles.editorialCard}>
               <Image
@@ -167,7 +179,7 @@ export default function HomeScreen() {
           </View>
         }
       />
-      <ProductFilterSheet visible={filtersVisible} sortOption={sortOption} availableOnly={availableOnly} priceRange={priceRange} onSortChange={setSortOption} onAvailabilityChange={setAvailableOnly} onPriceRangeChange={setPriceRange} onClear={() => { setSortOption('featured'); setAvailableOnly(false); setPriceRange('all'); }} onClose={() => setFiltersVisible(false)} />
+      <ProductFilterSheet visible={filtersVisible} sortOption={sortOption} availableOnly={availableOnly} priceRange={priceRange} condition={condition} onConditionChange={setCondition} onSortChange={setSortOption} onAvailabilityChange={setAvailableOnly} onPriceRangeChange={setPriceRange} onClear={() => { setSortOption('featured'); setAvailableOnly(false); setPriceRange('all'); setCondition('all'); }} onClose={() => setFiltersVisible(false)} />
     </SafeAreaView>
   );
 }
@@ -177,11 +189,16 @@ const styles = StyleSheet.create({
   listContent: { paddingBottom: 28 },
   topBar: { height: 63, paddingHorizontal: horizontalPadding, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Palette.background, zIndex: 1 },
   brand: { flex: 1, alignItems: 'center' },
-  headerSide: { width: 88, flexDirection: 'row', justifyContent: 'flex-start' },
-  actions: { width: 88, flexDirection: 'row', justifyContent: 'flex-end', gap: 5 },
+  headerSide: { width: 40, flexDirection: 'row', justifyContent: 'flex-start' },
+  actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 7 },
   wordmark: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 21, letterSpacing: 3 },
   eyebrow: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 8, letterSpacing: 1.4, marginTop: 1 },
   headerIcon: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 19, backgroundColor: Palette.surface },
+  profileButton: { width: 38, height: 40, alignItems: 'center', justifyContent: 'center' },
+  profileAvatarWrap: { width: 34, height: 34, borderRadius: 17, backgroundColor: Palette.surface },
+  headerAvatar: { width: 34, height: 34, borderRadius: 17 },
+  headerAvatarFallback: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: Palette.surface },
+  onlineIndicator: { position: 'absolute', right: -1, bottom: -1, width: 11, height: 11, borderRadius: 6, backgroundColor: '#32B768', borderWidth: 2, borderColor: Palette.background },
   notificationDot: { position: 'absolute', top: 8, right: 9, width: 8, height: 8, borderRadius: 4, backgroundColor: Palette.primary, borderWidth: 1, borderColor: Palette.surface },
   cartBadge: { position: 'absolute', top: 1, right: 0, minWidth: 15, height: 15, paddingHorizontal: 3, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: Palette.primary },
   cartBadgeText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 8, lineHeight: 11 },
@@ -199,6 +216,10 @@ const styles = StyleSheet.create({
   categoryChipActive: { backgroundColor: Palette.primary, borderColor: Palette.primary },
   categoryText: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
   categoryTextActive: { color: Palette.surface },
+  conditionChip: { minHeight: 31, justifyContent: 'center', paddingHorizontal: 8, borderRadius: 17, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
+  conditionChipActive: { borderColor: Palette.primary, backgroundColor: Palette.softPink },
+  conditionAll: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 9 },
+  conditionAllActive: { color: Palette.primaryDark },
   editorialCard: { height: 172, marginHorizontal: horizontalPadding, overflow: 'hidden', borderRadius: 20, justifyContent: 'center', backgroundColor: Palette.softPink },
   editorialShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(54, 25, 36, 0.23)' },
   editorialCopy: { marginLeft: 20 },

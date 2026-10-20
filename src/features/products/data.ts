@@ -22,6 +22,7 @@ export const products: Product[] = [
     colors: ['#D95C68'],
     rating: 4.8,
     available: true,
+    condition: 'new',
   },
   {
     id: 'dress-pink',
@@ -34,6 +35,7 @@ export const products: Product[] = [
     colors: ['#E98A9A', '#8EC4D5'],
     rating: 4.9,
     available: true,
+    condition: 'semi-new',
   },
   {
     id: 'look-yellow',
@@ -46,6 +48,7 @@ export const products: Product[] = [
     colors: ['#E7B84B'],
     rating: 4.7,
     available: true,
+    condition: 'good-used',
   },
   {
     id: 'dress-floral',
@@ -58,6 +61,7 @@ export const products: Product[] = [
     colors: ['#E9A6B2'],
     rating: 4.6,
     available: true,
+    condition: 'good-used',
   },
   {
     id: 'top-white',
@@ -70,6 +74,7 @@ export const products: Product[] = [
     colors: ['#FFFFFF'],
     rating: 4.5,
     available: true,
+    condition: 'new',
   },
   {
     id: 'skirt',
@@ -82,6 +87,7 @@ export const products: Product[] = [
     colors: ['#D7B3C0'],
     rating: 4.6,
     available: true,
+    condition: 'semi-new',
   },
   {
     id: 'linen-pants',
@@ -94,6 +100,7 @@ export const products: Product[] = [
     colors: ['#D4C3A5'],
     rating: 4.8,
     available: true,
+    condition: 'good-used',
   },
   {
     id: 'earrings',
@@ -106,6 +113,7 @@ export const products: Product[] = [
     colors: ['#C79A4A'],
     rating: 4.7,
     available: true,
+    condition: 'new',
   },
   {
     id: 'sandals',
@@ -118,6 +126,7 @@ export const products: Product[] = [
     colors: ['#B9866E'],
     rating: 4.5,
     available: true,
+    condition: 'semi-new',
   },
 ];
 

@@ -2,6 +2,9 @@ import { Check, SlidersHorizontal, X } from 'lucide-react-native';
 import { Modal, Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 
 import { Palette } from '@/constants/palette';
+import type { ProductCondition } from '@/features/products/types';
+import { productConditionOptions } from '@/features/products/conditions';
+import { ProductConditionBadge } from '@/components/products/product-condition-badge';
 
 export type ProductSortOption = 'featured' | 'price-asc' | 'price-desc' | 'rating';
 export type ProductPriceRange = 'all' | 'under-1000' | '1000-2000' | 'over-2000';
@@ -11,9 +14,11 @@ type ProductFilterSheetProps = {
   sortOption: ProductSortOption;
   availableOnly: boolean;
   priceRange: ProductPriceRange;
+  condition: ProductCondition | 'all';
   onSortChange: (option: ProductSortOption) => void;
   onAvailabilityChange: (value: boolean) => void;
   onPriceRangeChange: (range: ProductPriceRange) => void;
+  onConditionChange: (condition: ProductCondition | 'all') => void;
   onClear: () => void;
   onClose: () => void;
 };
@@ -32,7 +37,7 @@ const priceOptions: { id: ProductPriceRange; label: string }[] = [
   { id: 'over-2000', label: 'Acima de Kz 2.000' },
 ];
 
-export function ProductFilterSheet({ visible, sortOption, availableOnly, priceRange, onSortChange, onAvailabilityChange, onPriceRangeChange, onClear, onClose }: ProductFilterSheetProps) {
+export function ProductFilterSheet({ visible, sortOption, availableOnly, priceRange, condition, onSortChange, onAvailabilityChange, onPriceRangeChange, onConditionChange, onClear, onClose }: ProductFilterSheetProps) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose} statusBarTranslucent>
       <View style={styles.modalRoot}>
@@ -50,6 +55,14 @@ export function ProductFilterSheet({ visible, sortOption, availableOnly, priceRa
             const selected = priceRange === option.id;
             return <Pressable key={option.id} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => onPriceRangeChange(option.id)} style={[styles.option, selected && styles.optionSelected]}><Text style={[styles.optionText, selected && styles.optionTextSelected]}>{option.label}</Text>{selected ? <Check size={16} color={Palette.primaryDark} /> : null}</Pressable>;
           })}</View>
+          <Text style={styles.priceHeading}>Estado da peça</Text>
+          <View style={styles.options}>
+            <Pressable accessibilityRole="button" accessibilityState={{ selected: condition === 'all' }} onPress={() => onConditionChange('all')} style={[styles.option, condition === 'all' && styles.optionSelected]}><Text style={[styles.optionText, condition === 'all' && styles.optionTextSelected]}>Todos</Text>{condition === 'all' ? <Check size={16} color={Palette.primaryDark} /> : null}</Pressable>
+            {productConditionOptions.map((option) => {
+              const selected = condition === option.value;
+              return <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => onConditionChange(option.value)} style={[styles.conditionOption, selected && styles.optionSelected]}><ProductConditionBadge condition={option.value} compact /><Text style={[styles.optionText, selected && styles.optionTextSelected]}>{option.compactLabel}</Text>{selected ? <Check size={16} color={Palette.primaryDark} /> : null}</Pressable>;
+            })}
+          </View>
           <View style={styles.availabilityRow}><View style={styles.availabilityCopy}><Text style={styles.sectionTitle}>Disponibilidade</Text><Text style={styles.hint}>Mostrar apenas peças disponíveis</Text></View><Switch value={availableOnly} onValueChange={onAvailabilityChange} trackColor={{ false: Palette.border, true: Palette.primary }} thumbColor={Palette.surface} accessibilityLabel="Mostrar apenas produtos disponíveis" /></View>
           <View style={styles.actions}><Pressable accessibilityRole="button" onPress={onClear} style={styles.clearButton}><Text style={styles.clearText}>LIMPAR</Text></Pressable><Pressable accessibilityRole="button" onPress={onClose} style={styles.applyButton}><Text style={styles.applyText}>MOSTRAR PRODUTOS</Text></Pressable></View>
         </View>
@@ -59,5 +72,5 @@ export function ProductFilterSheet({ visible, sortOption, availableOnly, priceRa
 }
 
 const styles = StyleSheet.create({
-  modalRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(30,20,25,0.32)' }, scrim: { ...StyleSheet.absoluteFill }, sheet: { paddingHorizontal: 22, paddingTop: 9, paddingBottom: 27, borderTopLeftRadius: 25, borderTopRightRadius: 25, backgroundColor: Palette.background }, handle: { width: 36, height: 4, borderRadius: 2, alignSelf: 'center', backgroundColor: Palette.border, marginBottom: 17 }, header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }, heading: { flexDirection: 'row', alignItems: 'center', gap: 9 }, title: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 17 }, close: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: Palette.surface }, sectionTitle: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12 }, priceHeading: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12, marginTop: 19 }, options: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 11 }, option: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 13, borderRadius: 13, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border }, optionSelected: { backgroundColor: Palette.softPink, borderColor: Palette.primary }, optionText: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 10 }, optionTextSelected: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold' }, availabilityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 18, paddingVertical: 13, borderTopWidth: 1, borderBottomWidth: 1, borderColor: Palette.border }, availabilityCopy: { gap: 3 }, hint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10 }, actions: { flexDirection: 'row', gap: 10, marginTop: 19 }, clearButton: { minHeight: 49, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: Palette.surface }, clearText: { color: Palette.textSecondary, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 0.4 }, applyButton: { flex: 1, minHeight: 49, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: Palette.primary }, applyText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 0.4 },
+  modalRoot: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(30,20,25,0.32)' }, scrim: { ...StyleSheet.absoluteFill }, sheet: { paddingHorizontal: 22, paddingTop: 9, paddingBottom: 27, borderTopLeftRadius: 25, borderTopRightRadius: 25, backgroundColor: Palette.background }, handle: { width: 36, height: 4, borderRadius: 2, alignSelf: 'center', backgroundColor: Palette.border, marginBottom: 17 }, header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 22 }, heading: { flexDirection: 'row', alignItems: 'center', gap: 9 }, title: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 17 }, close: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 17, backgroundColor: Palette.surface }, sectionTitle: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12 }, priceHeading: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12, marginTop: 19 }, options: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 11 }, option: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 13, borderRadius: 13, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border }, conditionOption: { minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, borderRadius: 13, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border }, optionSelected: { backgroundColor: Palette.softPink, borderColor: Palette.primary }, optionText: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 10 }, optionTextSelected: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold' }, availabilityRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 18, paddingVertical: 13, borderTopWidth: 1, borderBottomWidth: 1, borderColor: Palette.border }, availabilityCopy: { gap: 3 }, hint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10 }, actions: { flexDirection: 'row', gap: 10, marginTop: 19 }, clearButton: { minHeight: 49, paddingHorizontal: 20, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: Palette.surface }, clearText: { color: Palette.textSecondary, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 0.4 }, applyButton: { flex: 1, minHeight: 49, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: Palette.primary }, applyText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 0.4 },
 });
