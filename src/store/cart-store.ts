@@ -1,7 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { useFeedbackStore } from './feedback-store';
 
 export type CartItem = {
   productId: string;
@@ -29,7 +28,6 @@ export const useCartStore = create<CartState>()(
             ? state.items.map((entry) => entry === existing ? { ...entry, quantity: entry.quantity + 1 } : entry)
             : [...state.items, { ...item, quantity: 1 }] };
         });
-        useFeedbackStore.getState().showToast('Produto adicionado ao carrinho');
       },
       updateQuantity: (productId, size, color, quantity) => set((state) => ({
         items: quantity < 1

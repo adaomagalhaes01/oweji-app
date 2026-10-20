@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import { Bell, Camera, ChevronRight, CircleHelp, CreditCard, Heart, LogOut, MapPin, Package, ShieldCheck, UserRound, Wallet } from 'lucide-react-native';
+import { Bell, Camera, ChevronRight, CircleHelp, CreditCard, Heart, LogOut, MapPin, Package, ShieldCheck, Wallet } from 'lucide-react-native';
 import { Image } from 'expo-image';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -38,12 +38,11 @@ export default function ProfileScreen() {
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.kicker}>A SUA CONTA OWEJI</Text><Text style={styles.title}>Meu perfil</Text>
-        <View style={styles.userCard}><Pressable accessibilityRole="button" accessibilityLabel="Alterar foto de perfil" onPress={pickAvatar} style={styles.avatarWrap}>{avatarUri ? <Image source={{ uri: avatarUri }} style={styles.avatarImage} contentFit="cover" /> : <View style={styles.avatar}><Text style={styles.avatarText}>{name.trim().charAt(0).toUpperCase() || 'U'}</Text></View>}<View style={styles.cameraBadge}><Camera size={12} color={Palette.surface} /></View></Pressable><View style={styles.userInfo}><Text style={styles.userName}>{name}</Text><Text style={styles.userEmail}>{email}</Text><Pressable onPress={() => { setEditName(name); setEditEmail(email); setEditPhone(phone); setEditing(!editing); }}><Text style={styles.editLink}>{editing ? 'Cancelar edição' : 'Editar os meus dados'}</Text></Pressable></View></View>
+        <View style={styles.userCard}><Pressable accessibilityRole="button" accessibilityLabel="Alterar foto de perfil" onPress={pickAvatar} style={styles.avatarWrap}>{avatarUri ? <Image source={{ uri: avatarUri }} style={styles.avatarImage} contentFit="cover" /> : <View style={styles.avatar}><Text style={styles.avatarText}>{name.trim().charAt(0).toUpperCase() || 'U'}</Text></View>}<View style={styles.cameraBadge}><Camera size={12} color={Palette.surface} /></View></Pressable><View style={styles.userInfo}><Text style={styles.userName}>{name}</Text><Text style={styles.userEmail}>{email}</Text><Pressable onPress={() => editing ? setEditing(false) : startEditing()}><Text style={styles.editLink}>{editing ? 'Cancelar edição' : 'Editar os meus dados'}</Text></Pressable></View></View>
         {editing ? <View style={styles.editCard}><ProfileField label="Nome completo" value={editName} onChangeText={setEditName} /><ProfileField label="Email" value={editEmail} onChangeText={setEditEmail} keyboardType="email-address" /><ProfileField label="Telefone" value={editPhone} onChangeText={setEditPhone} keyboardType="phone-pad" /><Pressable accessibilityRole="button" onPress={() => { updateProfile({ name: editName.trim(), email: editEmail.trim(), phone: editPhone.trim() }); setEditing(false); }} style={styles.saveButton}><Text style={styles.saveButtonText}>GUARDAR ALTERAÇÕES</Text></Pressable></View> : null}
         {accountType === 'merchant' ? <Pressable accessibilityRole="button" onPress={() => router.push('/shop')} style={styles.shopBanner}><View style={styles.shopBannerCopy}><Text style={styles.shopBannerTitle}>{storeName || 'A sua loja'}</Text><Text style={styles.shopBannerSubtitle}>Gerir produtos e acompanhar vendas</Text></View><ChevronRight size={19} color={Palette.primaryDark} /></Pressable> : null}
         <Text style={styles.sectionTitle}>A minha conta</Text>
         <View style={styles.menuCard}>
-          <MenuRow icon={<UserRound size={19} color={Palette.primaryDark} />} label="Dados pessoais" onPress={startEditing} />
           <MenuRow icon={<MapPin size={19} color={Palette.primaryDark} />} label="Endereços de entrega" onPress={() => router.push('/addresses')} />
           <MenuRow icon={<ShieldCheck size={19} color={Palette.primaryDark} />} label="Segurança e palavra-passe" onPress={() => router.push('/security')} last />
         </View>
@@ -52,12 +51,12 @@ export default function ProfileScreen() {
           <MenuRow icon={<Package size={19} color={Palette.primaryDark} />} label="Meus pedidos" detail={`${orderCount}`} onPress={() => router.push('/orders')} />
           <MenuRow icon={<Heart size={19} color={Palette.primaryDark} />} label="Os meus favoritos" detail={`${favoriteCount}`} onPress={() => router.push('/favorites')} />
           <MenuRow icon={<Bell size={19} color={Palette.primaryDark} />} label="Notificações" onPress={() => router.push('/notifications')} />
-          <MenuRow icon={<CreditCard size={19} color={Palette.primaryDark} />} label="Métodos de pagamento" onPress={() => Alert.alert('Pagamentos', 'Nenhum método de pagamento está guardado.')} last />
+          <MenuRow icon={<CreditCard size={19} color={Palette.primaryDark} />} label="Métodos de pagamento" onPress={() => router.push('/payment-methods')} last />
         </View>
         <Text style={styles.sectionTitle}>Ajuda e segurança</Text>
         <View style={styles.menuCard}>
-          <MenuRow icon={<CircleHelp size={19} color={Palette.primaryDark} />} label="Ajuda e suporte" onPress={() => Alert.alert('Ajuda e suporte', 'Entre em contacto connosco pelo suporte OWEJI.')} />
-          <MenuRow icon={<Wallet size={19} color={Palette.primaryDark} />} label="Privacidade e termos" onPress={() => Alert.alert('Privacidade', 'Os termos serão apresentados nesta secção.')} last />
+          <MenuRow icon={<CircleHelp size={19} color={Palette.primaryDark} />} label="Ajuda e suporte" onPress={() => router.push('/support')} />
+          <MenuRow icon={<Wallet size={19} color={Palette.primaryDark} />} label="Privacidade e termos" onPress={() => router.push('/legal')} last />
         </View>
         <Pressable accessibilityRole="button" onPress={signOut} style={styles.logout}><LogOut size={18} color={Palette.primaryDark} /><Text style={styles.logoutText}>Sair da conta</Text></Pressable>
       </ScrollView>
