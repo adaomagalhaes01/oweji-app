@@ -5,12 +5,12 @@ import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/palette';
+import { orderStatusLabels } from '@/features/orders/status';
 import { formatPrice } from '@/features/products/data';
-import type { LocalOrder, OrderStatus } from '@/store/orders-store';
+import type { LocalOrder } from '@/store/orders-store';
 import { useOrdersStore } from '@/store/orders-store';
 
 type OrderFilter = 'all' | 'active' | 'done';
-const statusLabels: Record<OrderStatus, string> = { 'awaiting-confirmation': 'A aguardar confirmação', 'payment-review': 'A validar pagamento', confirmed: 'Confirmado', preparing: 'Em preparação', shipped: 'A caminho', delivered: 'Entregue', cancelled: 'Cancelado' };
 
 export default function OrdersScreen() {
   const orders = useOrdersStore((state) => state.orders);
@@ -28,7 +28,7 @@ function OrderCard({ order }: { order: LocalOrder }) {
   const itemCount = order.lines.reduce((sum, line) => sum + line.quantity, 0);
   const preview = order.lines.slice(0, 2).map((line) => line.name).join(' · ');
   return <View style={styles.orderCard}>
-    <View style={styles.orderHeader}><View style={styles.orderHeading}><Text style={styles.orderId}>Pedido #{order.id.slice(-8).toUpperCase()}</Text><Text style={styles.orderDate}>{date}</Text></View><View style={[styles.statusPill, order.status === 'delivered' && styles.statusDone, order.status === 'cancelled' && styles.statusCancelled]}><Text style={[styles.statusText, order.status === 'delivered' && styles.statusDoneText, order.status === 'cancelled' && styles.statusCancelledText]}>{statusLabels[order.status]}</Text></View></View>
+    <View style={styles.orderHeader}><View style={styles.orderHeading}><Text style={styles.orderId}>Pedido #{order.id.slice(-8).toUpperCase()}</Text><Text style={styles.orderDate}>{date}</Text></View><View style={[styles.statusPill, order.status === 'delivered' && styles.statusDone, order.status === 'cancelled' && styles.statusCancelled]}><Text style={[styles.statusText, order.status === 'delivered' && styles.statusDoneText, order.status === 'cancelled' && styles.statusCancelledText]}>{orderStatusLabels[order.status]}</Text></View></View>
     <View style={styles.preview}><View style={styles.packageIcon}><Package size={19} color={Palette.primaryDark} /></View><View style={styles.previewCopy}><Text numberOfLines={1} style={styles.previewName}>{preview || 'Peças de moda'}</Text><Text style={styles.previewMeta}>{itemCount} {itemCount === 1 ? 'peça' : 'peças'} · {formatPrice(order.total)}</Text></View></View>
     <Pressable accessibilityRole="button" accessibilityLabel={`Ver detalhe do pedido ${order.id.slice(-8)}`} onPress={() => router.push({ pathname: '/orders/[id]', params: { id: order.id } })} style={styles.detailButton}><Text style={styles.detailText}>Ver detalhe</Text><ChevronRight size={17} color={Palette.primaryDark} /></Pressable>
   </View>;

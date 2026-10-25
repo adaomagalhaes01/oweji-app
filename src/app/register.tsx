@@ -6,7 +6,7 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/palette';
-import { useProfileStore } from '@/store/profile-store';
+import { createStoreId, useProfileStore } from '@/store/profile-store';
 import { getPasswordKey } from '@/features/auth/password';
 
 export default function RegisterScreen() {
@@ -19,14 +19,42 @@ export default function RegisterScreen() {
   const [storeName, setStoreName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const setSignedIn = useProfileStore((state) => state.setSignedIn);
   const valid = useMemo(() => name.trim().length >= 3 && /^\S+@\S+\.\S+$/.test(email) && phone.trim().length >= 8 && password.length >= 6 && password === confirmation && (accountType === 'customer' || storeName.trim().length >= 2), [name, email, phone, password, confirmation, accountType, storeName]);
+  const changeField = (setter: (value: string) => void) => (value: string) => {
+    setError('');
+    setter(value);
+  };
   const createAccount = async () => {
-    if (Platform.OS !== 'web') await SecureStore.setItemAsync(getPasswordKey(email), password);
-    updateProfile({ name: name.trim(), email: email.trim(), phone: phone.trim(), accountType, storeName: accountType === 'merchant' ? storeName.trim() : '' });
-    setSignedIn(true);
-    router.replace(accountType === 'merchant' ? '/shop' : '/');
+    if (!valid || submitting) {
+      setError('Preencha todos os dados obrigatórios corretamente para continuar.');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    try {
+      if (Platform.OS !== 'web') await SecureStore.setItemAsync(getPasswordKey(email), password);
+      updateProfile({
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        accountType,
+        storeId: accountType === 'merchant' ? createStoreId() : '',
+        storeName: accountType === 'merchant' ? storeName.trim() : '',
+      });
+      setSignedIn(true);
+      if (accountType === 'merchant') {
+        router.replace({ pathname: '/splash', params: { destination: 'shop' } });
+      } else {
+        router.replace('/');
+      }
+    } catch {
+      setError('Não foi possível criar a conta. Verifique os dados e tente novamente.');
+      setSubmitting(false);
+    }
   };
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -40,15 +68,17 @@ export default function RegisterScreen() {
             <Pressable accessibilityRole="button" accessibilityState={{ selected: accountType === 'customer' }} onPress={() => setAccountType('customer')} style={[styles.roleCard, accountType === 'customer' && styles.roleSelected]}><UserRound size={19} color={accountType === 'customer' ? Palette.primaryDark : Palette.textSecondary} /><Text style={styles.roleTitle}>Cliente</Text><Text style={styles.roleDescription}>Descobrir e comprar</Text></Pressable>
             <Pressable accessibilityRole="button" accessibilityState={{ selected: accountType === 'merchant' }} onPress={() => setAccountType('merchant')} style={[styles.roleCard, accountType === 'merchant' && styles.roleSelected]}><Store size={19} color={accountType === 'merchant' ? Palette.primaryDark : Palette.textSecondary} /><Text style={styles.roleTitle}>Comerciante</Text><Text style={styles.roleDescription}>Criar uma loja</Text></Pressable>
           </View>
-          <FormField icon={<UserRound size={17} color={Palette.textSecondary} />} label="Nome completo" value={name} onChangeText={setName} placeholder="Como podemos chamar-lhe?" />
-          <FormField icon={<Mail size={17} color={Palette.textSecondary} />} label="Email" value={email} onChangeText={setEmail} placeholder="nome@email.com" keyboardType="email-address" />
-          <FormField icon={<Phone size={17} color={Palette.textSecondary} />} label="Número de telefone" value={phone} onChangeText={setPhone} placeholder="+244 900 000 000" keyboardType="phone-pad" />
-          {accountType === 'merchant' ? <><FormField icon={<Store size={17} color={Palette.textSecondary} />} label="Nome da loja" value={storeName} onChangeText={setStoreName} placeholder="Ex.: Atelier Oweji" /><Text style={styles.storeHint}>Depois poderá publicar produtos e acompanhar as vendas da sua loja.</Text></> : null}
-          <FormField icon={<LockKeyhole size={17} color={Palette.textSecondary} />} label="Palavra-passe" value={password} onChangeText={setPassword} placeholder="Mínimo de 6 caracteres" secureTextEntry={!showPassword} toggle={() => setShowPassword(!showPassword)} visible={showPassword} />
-          <FormField icon={<LockKeyhole size={17} color={Palette.textSecondary} />} label="Confirmar palavra-passe" value={confirmation} onChangeText={setConfirmation} placeholder="Repita a palavra-passe" secureTextEntry={!showConfirmation} toggle={() => setShowConfirmation(!showConfirmation)} visible={showConfirmation} />
+          <FormField icon={<UserRound size={17} color={Palette.textSecondary} />} label="Nome completo" value={name} onChangeText={changeField(setName)} placeholder="Como podemos chamar-lhe?" />
+          <FormField icon={<Mail size={17} color={Palette.textSecondary} />} label="Email" value={email} onChangeText={changeField(setEmail)} placeholder="nome@email.com" keyboardType="email-address" />
+          <FormField icon={<Phone size={17} color={Palette.textSecondary} />} label="Número de telefone" value={phone} onChangeText={changeField(setPhone)} placeholder="+244 900 000 000" keyboardType="phone-pad" />
+          {accountType === 'merchant' ? <><FormField icon={<Store size={17} color={Palette.textSecondary} />} label="Nome da loja" value={storeName} onChangeText={changeField(setStoreName)} placeholder="Ex.: Atelier Oweji" /><Text style={styles.storeHint}>Depois poderá publicar produtos e acompanhar as vendas da sua loja.</Text></> : null}
+          <FormField icon={<LockKeyhole size={17} color={Palette.textSecondary} />} label="Palavra-passe" value={password} onChangeText={changeField(setPassword)} placeholder="Mínimo de 6 caracteres" secureTextEntry={!showPassword} toggle={() => setShowPassword(!showPassword)} visible={showPassword} />
+          <FormField icon={<LockKeyhole size={17} color={Palette.textSecondary} />} label="Confirmar palavra-passe" value={confirmation} onChangeText={changeField(setConfirmation)} placeholder="Repita a palavra-passe" secureTextEntry={!showConfirmation} toggle={() => setShowConfirmation(!showConfirmation)} visible={showConfirmation} />
           {confirmation.length > 0 && password !== confirmation ? <Text style={styles.error}>As palavras-passe não coincidem.</Text> : null}
           {password.length > 0 && password.length < 6 ? <Text style={styles.error}>Use pelo menos 6 caracteres.</Text> : null}
-          <Pressable accessibilityRole="button" disabled={!valid} onPress={createAccount} style={[styles.primaryButton, !valid && styles.disabled]}><Text style={styles.primaryText}>{accountType === 'merchant' ? 'CRIAR CONTA E LOJA' : 'CRIAR CONTA'}</Text></Pressable>
+          {accountType === 'merchant' && storeName.length > 0 && storeName.trim().length < 2 ? <Text style={styles.error}>O nome da loja precisa de pelo menos 2 caracteres.</Text> : null}
+          {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+          <Pressable accessibilityRole="button" accessibilityState={{ disabled: !valid || submitting, busy: submitting }} disabled={!valid || submitting} onPress={createAccount} style={[styles.primaryButton, (!valid || submitting) && styles.disabled]}><Text style={styles.primaryText}>{submitting ? 'A CRIAR CONTA…' : accountType === 'merchant' ? 'CRIAR CONTA E LOJA' : 'CRIAR CONTA'}</Text></Pressable>
           <View style={styles.bottomLink}><Text style={styles.bottomText}>Já tem uma conta? </Text><Pressable onPress={() => router.push('/login')}><Text style={styles.link}>Entrar</Text></Pressable></View>
         </ScrollView>
       </KeyboardAvoidingView>

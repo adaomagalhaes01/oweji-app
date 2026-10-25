@@ -10,12 +10,21 @@ type Profile = {
   email: string;
   phone: string;
   accountType: AccountType;
+  storeId: string;
   storeName: string;
+  storeDescription: string;
+  storePhone: string;
+  storeLocation: string;
+  storeLogoUri: string | null;
   avatarUri: string | null;
   addresses: DeliveryAddress[];
   isSignedIn: boolean;
   hasHydrated: boolean;
 };
+
+export function createStoreId() {
+  return `STORE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+}
 
 type ProfileState = Profile & {
   updateProfile: (profile: Partial<Profile>) => void;
@@ -32,7 +41,12 @@ export const useProfileStore = create<ProfileState>()(
       email: 'adao@email.com',
       phone: '',
       accountType: 'customer',
+      storeId: '',
       storeName: '',
+      storeDescription: '',
+      storePhone: '',
+      storeLocation: '',
+      storeLogoUri: null,
       avatarUri: null,
       addresses: [],
       isSignedIn: true,
@@ -57,8 +71,27 @@ export const useProfileStore = create<ProfileState>()(
     {
       name: 'oweji-profile',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 2,
-      migrate: (persisted) => ({ ...(persisted as Profile), avatarUri: null, addresses: [], isSignedIn: true }),
+      version: 4,
+      migrate: (persisted) => {
+        const profile = (persisted ?? {}) as Partial<Profile>;
+        const accountType: AccountType = profile.accountType === 'merchant' ? 'merchant' : 'customer';
+        return {
+          ...profile,
+          accountType,
+          storeName: typeof profile.storeName === 'string' ? profile.storeName : '',
+          storeDescription: typeof profile.storeDescription === 'string' ? profile.storeDescription : '',
+          storePhone: typeof profile.storePhone === 'string' ? profile.storePhone : '',
+          storeLocation: typeof profile.storeLocation === 'string' ? profile.storeLocation : '',
+          storeLogoUri: typeof profile.storeLogoUri === 'string' ? profile.storeLogoUri : null,
+          storeId: typeof profile.storeId === 'string' && profile.storeId
+            ? profile.storeId
+            : accountType === 'merchant' ? createStoreId() : '',
+          avatarUri: profile.avatarUri ?? null,
+          addresses: Array.isArray(profile.addresses) ? profile.addresses : [],
+          isSignedIn: profile.isSignedIn ?? true,
+          hasHydrated: false,
+        };
+      },
       onRehydrateStorage: () => (state) => state?.setHasHydrated(true),
     },
   ),

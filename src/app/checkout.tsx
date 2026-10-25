@@ -31,8 +31,9 @@ export default function CheckoutScreen() {
   const catalog = useMemo(() => getProductCatalog(sellerProducts), [sellerProducts]);
   const lines = useMemo(() => items.flatMap((item) => {
     const product = catalog.find((entry) => entry.id === item.productId);
-    return product ? [{ ...item, name: product.name, unitPrice: product.price }] : [];
+    return product ? [{ ...item, name: product.name, unitPrice: product.price, merchantId: product.merchantId, available: product.available, stock: product.stock }] : [];
   }), [catalog, items]);
+  const stockIssue = lines.some((line) => !line.available || (line.stock != null && line.quantity > line.stock));
   const subtotal = lines.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
   const shipping = lines.length > 0 ? SHIPPING_FEE : 0;
   const [fullName, setFullName] = useState(profileName);
@@ -75,6 +76,10 @@ export default function CheckoutScreen() {
   };
 
   const submitOrder = () => {
+    if (stockIssue) {
+      setError('O stock de uma ou mais peças foi alterado. Volte ao carrinho e ajuste as quantidades.');
+      return;
+    }
     const validEmail = /^\S+@\S+\.\S+$/.test(email.trim());
     const validPhone = phone.replace(/\D/g, '').length >= 9;
     if (!fullName.trim() || !validEmail || !validPhone || !province.trim() || !municipality.trim() || !address.trim() || !receipt) {
@@ -93,7 +98,7 @@ export default function CheckoutScreen() {
         saveAddress({ id: selected?.id, label: selected?.label ?? 'Morada de entrega', fullName: fullName.trim(), phone: phone.trim(), province: province.trim(), municipality: municipality.trim(), address: address.trim(), reference: reference.trim(), isDefault: selected?.isDefault ?? savedAddresses.length === 0 });
       }
       addOrder({
-        lines: lines.map(({ productId, name, unitPrice, quantity, size, color }) => ({ productId, name, unitPrice, quantity, size, color })),
+        lines: lines.map(({ productId, name, unitPrice, quantity, size, color, merchantId }) => ({ productId, name, unitPrice, quantity, size, color, merchantId })),
         subtotal,
         shipping,
         total: subtotal + shipping,
@@ -168,8 +173,9 @@ export default function CheckoutScreen() {
             <SummaryRow label="Total" value={formatPrice(subtotal + shipping)} bold />
           </Section>
 
+          {stockIssue ? <Text accessibilityRole="alert" style={styles.error}>Há peças sem stock suficiente. Volte ao carrinho para ajustar as quantidades antes de enviar o pedido.</Text> : null}
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-          <Pressable accessibilityRole="button" disabled={submitting} onPress={submitOrder} style={[styles.primaryButton, submitting && styles.disabled]}><Text style={styles.primaryButtonText}>{submitting ? 'A REGISTAR…' : 'ENVIAR PEDIDO E COMPROVATIVO'}</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityState={{ disabled: submitting || stockIssue }} disabled={submitting || stockIssue} onPress={submitOrder} style={[styles.primaryButton, (submitting || stockIssue) && styles.disabled]}><Text style={styles.primaryButtonText}>{submitting ? 'A REGISTAR…' : 'ENVIAR PEDIDO E COMPROVATIVO'}</Text></Pressable>
           <Text style={styles.footerHint}>Ao continuar, confirma que os dados de entrega estão correctos.</Text>
         </ScrollView>
       </KeyboardAvoidingView>

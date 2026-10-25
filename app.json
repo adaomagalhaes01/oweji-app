@@ -28,7 +28,7 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "O OWEJI permite escolher uma fotografia para o seu perfil.",
+          "photosPermission": "O OWEJI permite escolher fotografias para o seu perfil, produtos e loja.",
           "microphonePermission": false
         }
       ],
