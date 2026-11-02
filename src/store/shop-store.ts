@@ -10,7 +10,7 @@ export type ShopProduct = {
   name: string;
   description: string;
   price: number;
-  imageKey: ShopImageKey;
+  imageKey: ShopImageKey | null;
   imageUri: string | null;
   category: string;
   sizes: string[];
@@ -18,6 +18,7 @@ export type ShopProduct = {
   stock: number;
   condition: ProductCondition;
   merchantId?: string;
+  merchantStoreName?: string;
   createdAt: number;
 };
 

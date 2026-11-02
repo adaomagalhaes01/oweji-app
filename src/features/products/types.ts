@@ -7,7 +7,7 @@ export type Product = {
   name: string;
   description: string;
   price: number;
-  image: number | ImageSource;
+  image: number | ImageSource | null;
   category: string;
   sizes: string[];
   colors: string[];
@@ -16,6 +16,7 @@ export type Product = {
   stock?: number;
   condition: ProductCondition;
   merchantId?: string;
+  merchantStoreName?: string;
 };
 
 export type Category = {

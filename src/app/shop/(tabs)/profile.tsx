@@ -1,21 +1,20 @@
 import { Image } from 'expo-image';
 import { router } from 'expo-router';
-import { Camera, CheckCircle2, ChevronRight, CircleAlert, ExternalLink, FileText, LogOut, MapPin, Phone, Store, UserRound } from 'lucide-react-native';
+import { Camera, CheckCircle2, ChevronRight, CircleAlert, FileText, LogOut, MapPin, Phone, Store } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MerchantHeader } from '@/components/merchant/merchant-header';
 import { Palette } from '@/constants/palette';
 import { pickImageFromLibrary } from '@/features/media/pick-image';
-import { getMerchantProducts } from '@/features/merchant/metrics';
+import { findLocalAccount, saveLocalAccount } from '@/features/auth/local-accounts';
+import { getMerchantProducts, getMerchantSales } from '@/features/merchant/metrics';
 import { useOrdersStore } from '@/store/orders-store';
 import { useProfileStore } from '@/store/profile-store';
 import { useShopStore } from '@/store/shop-store';
 
 export default function MerchantProfileScreen() {
-  const name = useProfileStore((state) => state.name);
-  const email = useProfileStore((state) => state.email);
   const storeId = useProfileStore((state) => state.storeId);
   const storeName = useProfileStore((state) => state.storeName);
   const storeDescription = useProfileStore((state) => state.storeDescription);
@@ -34,6 +33,8 @@ export default function MerchantProfileScreen() {
   const [picking, setPicking] = useState(false);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const merchantProducts = useMemo(() => getMerchantProducts(products, storeId), [products, storeId]);
+  const ownedProductIds = useMemo(() => merchantProducts.map((product) => `seller-${product.id}`), [merchantProducts]);
+  const merchantSales = useMemo(() => getMerchantSales(orders, storeId, ownedProductIds), [orders, storeId, ownedProductIds]);
   const valid = editName.trim().length >= 2;
 
   useEffect(() => {
@@ -75,7 +76,10 @@ export default function MerchantProfileScreen() {
     {
       text: 'Sair',
       style: 'destructive',
-      onPress: () => {
+      onPress: async () => {
+        const current = useProfileStore.getState();
+        const account = await findLocalAccount(current.email);
+        if (account) await saveLocalAccount({ ...account, name: current.name, phone: current.phone, storeId: current.storeId, storeName: current.storeName, storeDescription: current.storeDescription, storePhone: current.storePhone, storeLocation: current.storeLocation, storeLogoUri: current.storeLogoUri, avatarUri: current.avatarUri, addresses: current.addresses });
         setSignedIn(false);
         router.replace('/login');
       },
@@ -115,7 +119,7 @@ export default function MerchantProfileScreen() {
         <View style={styles.statsCard}>
           <View style={styles.stat}><Text style={styles.statValue}>{merchantProducts.length}</Text><Text style={styles.statLabel}>Produtos</Text></View>
           <View style={styles.statDivider} />
-          <View style={styles.stat}><Text style={styles.statValue}>{orders.length}</Text><Text style={styles.statLabel}>Pedidos no dispositivo</Text></View>
+          <View style={styles.stat}><Text style={styles.statValue}>{merchantSales.length}</Text><Text style={styles.statLabel}>Pedidos da loja</Text></View>
           <View style={styles.statDivider} />
           <View style={styles.stat}><Text style={styles.statValue}>{merchantProducts.reduce((sum, product) => sum + product.stock, 0)}</Text><Text style={styles.statLabel}>Unidades em stock</Text></View>
         </View>
@@ -134,15 +138,6 @@ export default function MerchantProfileScreen() {
 
         <Text style={styles.sectionTitle}>Conta</Text>
         <View style={styles.menuCard}>
-          <View style={styles.accountRow}>
-            <View style={styles.accountIcon}><UserRound size={17} color={Palette.primaryDark} /></View>
-            <View style={styles.accountCopy}><Text style={styles.accountName}>{name}</Text><Text style={styles.accountEmail}>{email}</Text>{Platform.OS === 'web' ? <Text style={styles.accountHint}>Sessão local no navegador</Text> : null}</View>
-          </View>
-          <Pressable accessibilityRole="button" onPress={() => router.push('/profile')} style={styles.menuRow}>
-            <ExternalLink size={17} color={Palette.primaryDark} />
-            <Text style={styles.menuLabel}>Abrir conta de cliente OWEJI</Text>
-            <ChevronRight size={16} color={Palette.textSecondary} />
-          </Pressable>
           <Pressable accessibilityRole="button" onPress={signOut} style={[styles.menuRow, styles.menuRowLast]}>
             <LogOut size={17} color={Palette.primaryDark} />
             <Text style={styles.menuLabel}>Sair da conta</Text>
@@ -182,7 +177,7 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 110 },
   feedback: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, padding: 11, marginTop: 12, borderRadius: 13, backgroundColor: '#E5F3EA' },
   feedbackError: { backgroundColor: Palette.softPink },
-  feedbackText: { flex: 1, color: '#286744', fontFamily: 'Poppins_500Medium', fontSize: 9, lineHeight: 15 },
+  feedbackText: { flex: 1, color: '#286744', fontFamily: 'Poppins_500Medium', fontSize: 11, lineHeight: 15 },
   feedbackTextError: { color: Palette.error },
   logoCard: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 15, marginTop: 16, borderRadius: 17, backgroundColor: Palette.surface },
   logoWrap: { width: 72, height: 72 },
@@ -191,35 +186,35 @@ const styles = StyleSheet.create({
   logoInitial: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 26 },
   cameraBadge: { position: 'absolute', right: -1, bottom: -1, width: 24, height: 24, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: Palette.primary, borderWidth: 2, borderColor: Palette.surface },
   logoCopy: { flex: 1 },
-  logoTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 14 },
-  logoHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, lineHeight: 13, marginTop: 3 },
-  storeId: { color: Palette.primaryDark, fontFamily: 'Poppins_500Medium', fontSize: 7, marginTop: 5, letterSpacing: 0.3 },
+  logoTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 15 },
+  logoHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, lineHeight: 13, marginTop: 3 },
+  storeId: { color: Palette.primaryDark, fontFamily: 'Poppins_500Medium', fontSize: 9, marginTop: 5, letterSpacing: 0.3 },
   statsCard: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 10, marginTop: 11, borderRadius: 16, backgroundColor: Palette.softPink },
   stat: { flex: 1, alignItems: 'center' },
   statValue: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 15 },
-  statLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 7, textAlign: 'center', marginTop: 2 },
+  statLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, textAlign: 'center', marginTop: 2 },
   statDivider: { width: 1, height: 27, backgroundColor: 'rgba(201,95,114,0.18)' },
   sectionTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 15, marginTop: 22, marginBottom: 9 },
   formCard: { padding: 15, borderRadius: 17, backgroundColor: Palette.surface },
   field: { marginBottom: 11 },
-  fieldLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 10, marginBottom: 5 },
+  fieldLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12, marginBottom: 5 },
   inputWrap: { minHeight: 45, flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.background },
   inputWrapMultiline: { alignItems: 'flex-start', paddingTop: 11 },
-  input: { flex: 1, color: Palette.text, fontFamily: 'Poppins_400Regular', fontSize: 11, paddingVertical: 0 },
+  input: { flex: 1, color: Palette.text, fontFamily: 'Poppins_400Regular', fontSize: 13, paddingVertical: 0 },
   inputMultiline: { minHeight: 55, textAlignVertical: 'top' },
-  fieldError: { color: Palette.error, fontFamily: 'Poppins_400Regular', fontSize: 9, marginTop: -5, marginBottom: 8 },
+  fieldError: { color: Palette.error, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: -5, marginBottom: 8 },
   saveButton: { minHeight: 45, alignItems: 'center', justifyContent: 'center', marginTop: 2, borderRadius: 13, backgroundColor: Palette.primary },
-  saveText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 9, letterSpacing: 0.4 },
+  saveText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 11, letterSpacing: 0.4 },
   disabled: { opacity: 0.45 },
   menuCard: { paddingHorizontal: 14, borderRadius: 17, backgroundColor: Palette.surface },
   accountRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: Palette.border },
   accountIcon: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 11, backgroundColor: Palette.softPink },
   accountCopy: { flex: 1 },
-  accountName: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 11 },
-  accountEmail: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, marginTop: 2 },
-  accountHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, marginTop: 2 },
+  accountName: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 13 },
+  accountEmail: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 2 },
+  accountHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 2 },
   menuRow: { minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: 1, borderBottomColor: Palette.border },
   menuRowLast: { borderBottomWidth: 0 },
-  menuLabel: { flex: 1, color: Palette.text, fontFamily: 'Poppins_500Medium', fontSize: 11 },
-  footnote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, lineHeight: 14, marginTop: 12 },
+  menuLabel: { flex: 1, color: Palette.text, fontFamily: 'Poppins_500Medium', fontSize: 13 },
+  footnote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 14, marginTop: 12 },
 });

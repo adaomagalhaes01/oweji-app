@@ -6,11 +6,15 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Palette } from '@/constants/palette';
 import { useNotificationStore } from '@/store/notification-store';
 import type { AppNotification } from '@/store/notification-store';
+import { useProfileStore } from '@/store/profile-store';
 
 export default function NotificationsScreen() {
-  const notifications = useNotificationStore((state) => state.notifications);
+  const allNotifications = useNotificationStore((state) => state.notifications);
+  const accountType = useProfileStore((state) => state.accountType);
+  const storeId = useProfileStore((state) => state.storeId);
+  const notifications = allNotifications.filter((item) => !item.storeId || (accountType === 'merchant' && item.storeId === storeId));
   const markRead = useNotificationStore((state) => state.markRead);
-  const markAllRead = useNotificationStore((state) => state.markAllRead);
+  const markAllVisibleRead = () => notifications.forEach((item) => markRead(item.id));
   const unreadCount = notifications.filter((item) => !item.read).length;
 
   return (
@@ -18,13 +22,13 @@ export default function NotificationsScreen() {
       <View style={styles.header}>
         <Pressable accessibilityRole="button" accessibilityLabel="Voltar" onPress={() => router.back()} style={styles.back}><ArrowLeft size={20} color={Palette.text} /></Pressable>
         <View style={styles.headerCopy}><Text style={styles.kicker}>FIQUE POR DENTRO</Text><Text style={styles.title}>Notificações</Text></View>
-        {unreadCount > 0 ? <Pressable accessibilityRole="button" onPress={markAllRead} style={styles.readAll}><CheckCheck size={18} color={Palette.primaryDark} /></Pressable> : <View style={styles.readAll} />}
+        {unreadCount > 0 ? <Pressable accessibilityRole="button" onPress={markAllVisibleRead} style={styles.readAll}><CheckCheck size={18} color={Palette.primaryDark} /></Pressable> : <View style={styles.readAll} />}
       </View>
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
-        renderItem={({ item }) => <NotificationRow item={item} onPress={() => markRead(item.id)} />}
+        renderItem={({ item }) => <NotificationRow item={item} onPress={() => { markRead(item.id); if (item.orderId) router.push({ pathname: '/shop/order/[id]', params: { id: item.orderId } }); }} />}
         ListEmptyComponent={<View style={styles.empty}><Bell size={28} color={Palette.primary} /><Text style={styles.emptyTitle}>Sem notificações</Text><Text style={styles.emptySubtitle}>Quando houver novidades, elas vão aparecer aqui.</Text></View>}
       />
     </SafeAreaView>
@@ -34,7 +38,7 @@ export default function NotificationsScreen() {
 function NotificationRow({ item, onPress }: { item: AppNotification; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} style={[styles.card, !item.read && styles.unreadCard]}>
-      <View style={styles.icon}>{item.id === 'collection' ? <Tag size={18} color={Palette.primaryDark} /> : <Heart size={18} color={Palette.primaryDark} />}</View>
+      <View style={styles.icon}>{item.orderId ? <Bell size={18} color={Palette.primaryDark} /> : item.id === 'collection' ? <Tag size={18} color={Palette.primaryDark} /> : <Heart size={18} color={Palette.primaryDark} />}</View>
       <View style={styles.copy}><View style={styles.titleLine}><Text style={styles.notificationTitle}>{item.title}</Text>{!item.read ? <View style={styles.unreadDot} /> : null}</View><Text style={styles.message}>{item.message}</Text><Text style={styles.time}>{item.time}</Text></View>
     </Pressable>
   );

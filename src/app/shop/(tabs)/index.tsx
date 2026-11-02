@@ -36,7 +36,7 @@ export default function MerchantDashboardScreen() {
   const salesTotal = sales.reduce((total, sale) => total + sale.value, 0);
   const stockTotal = merchantProducts.reduce((total, product) => total + product.stock, 0);
   const lowStock = merchantProducts.filter((product) => product.stock > 0 && product.stock <= 3);
-  const recentSales = sales.slice(0, 4);
+  const recentSales = sales.slice(0, 5);
   const recentProducts = merchantProducts.slice(0, 3);
 
   return (
@@ -166,36 +166,36 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.background },
   content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 110 },
   metrics: { flexDirection: 'row', gap: 9, marginTop: 18 },
-  metricsNote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, lineHeight: 14, marginTop: 8 },
+  metricsNote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, lineHeight: 14, marginTop: 8 },
   lowStock: { flexDirection: 'row', alignItems: 'center', gap: 9, padding: 11, marginTop: 12, borderRadius: 14, backgroundColor: '#FFF1D9' },
   lowStockIcon: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 11, backgroundColor: '#FFE4B5' },
   lowStockCopy: { flex: 1 },
-  lowStockTitle: { color: '#805B20', fontFamily: 'Poppins_700Bold', fontSize: 9 },
-  lowStockText: { color: '#805B20', fontFamily: 'Poppins_400Regular', fontSize: 8, marginTop: 2 },
+  lowStockTitle: { color: '#805B20', fontFamily: 'Poppins_700Bold', fontSize: 11 },
+  lowStockText: { color: '#805B20', fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 2 },
   quickActions: { flexDirection: 'row', gap: 8, marginTop: 14 },
   quickAction: { flex: 1, alignItems: 'center', paddingVertical: 11, borderRadius: 14, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
   quickActionIcon: { width: 33, height: 33, alignItems: 'center', justifyContent: 'center', borderRadius: 11, backgroundColor: Palette.softPink },
-  quickActionLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 8, textAlign: 'center', marginTop: 6 },
+  quickActionLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 10, textAlign: 'center', marginTop: 6 },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 25, marginBottom: 11 },
   sectionTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 16 },
-  sectionSubtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, marginTop: 3 },
-  seeAll: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 10 },
+  sectionSubtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 3 },
+  seeAll: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
   saleRow: { flexDirection: 'row', alignItems: 'center', gap: 9, padding: 11, marginBottom: 8, borderRadius: 14, backgroundColor: Palette.surface },
   saleIcon: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 11, backgroundColor: Palette.softPink },
   saleCopy: { flex: 1 },
   saleTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  saleName: { flex: 1, color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 10 },
-  saleMeta: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, marginTop: 2 },
+  saleName: { flex: 1, color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
+  saleMeta: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 2 },
   saleValueWrap: { alignItems: 'flex-end', gap: 2 },
-  saleValue: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 9 },
+  saleValue: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 11 },
   productRow: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 9, marginBottom: 8, borderRadius: 14, backgroundColor: Palette.surface },
   productImage: { width: 48, height: 58, borderRadius: 9, backgroundColor: Palette.softPink },
   productCopy: { flex: 1 },
-  productName: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 10 },
-  productMeta: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, marginTop: 3 },
+  productName: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
+  productMeta: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 3 },
   stockPill: { paddingHorizontal: 7, paddingVertical: 4, borderRadius: 8, backgroundColor: '#E5F3EA' },
   stockPillEmpty: { backgroundColor: '#FCE7EC' },
-  stockPillText: { color: '#286744', fontFamily: 'Poppins_600SemiBold', fontSize: 7 },
+  stockPillText: { color: '#286744', fontFamily: 'Poppins_600SemiBold', fontSize: 9 },
   stockPillTextEmpty: { color: Palette.error },
-  footnote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, lineHeight: 14, marginTop: 10 },
+  footnote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 14, marginTop: 10 },
 });

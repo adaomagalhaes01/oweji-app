@@ -8,12 +8,16 @@ export type AppNotification = {
   message: string;
   time: string;
   read: boolean;
+  storeId?: string;
+  orderId?: string;
 };
 
 type NotificationState = {
   notifications: AppNotification[];
+  resetNotifications: () => void;
   markRead: (id: string) => void;
   markAllRead: () => void;
+  addNotification: (notification: Omit<AppNotification, 'id' | 'read' | 'time'>) => void;
 };
 
 export const useNotificationStore = create<NotificationState>()(
@@ -23,8 +27,13 @@ export const useNotificationStore = create<NotificationState>()(
         { id: 'welcome', title: 'Bem-vinda ao OWEJI', message: 'Explore a coleção e guarde as suas peças favoritas.', time: 'Hoje', read: false },
         { id: 'collection', title: 'Novidades na coleção', message: 'Descubra os novos looks escolhidos para esta estação.', time: 'Hoje', read: false },
       ],
+      resetNotifications: () => set({ notifications: [
+        { id: 'welcome', title: 'Bem-vinda ao OWEJI', message: 'Explore a coleção e guarde as suas peças favoritas.', time: 'Hoje', read: false },
+        { id: 'collection', title: 'Novidades na coleção', message: 'Descubra os novos looks escolhidos para esta estação.', time: 'Hoje', read: false },
+      ] }),
       markRead: (id) => set((state) => ({ notifications: state.notifications.map((item) => item.id === id ? { ...item, read: true } : item) })),
       markAllRead: () => set((state) => ({ notifications: state.notifications.map((item) => ({ ...item, read: true })) })),
+      addNotification: (notification) => set((state) => ({ notifications: [{ ...notification, id: `notification-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, time: new Date().toLocaleString('pt-AO'), read: false }, ...state.notifications] })),
     }),
     { name: 'oweji-notifications', storage: createJSONStorage(() => AsyncStorage) },
   ),

@@ -1,4 +1,3 @@
-import * as SecureStore from 'expo-secure-store';
 import { router } from 'expo-router';
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, ShieldCheck } from 'lucide-react-native';
 import { useState } from 'react';
@@ -6,7 +5,7 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/palette';
-import { getPasswordKey } from '@/features/auth/password';
+import { findLocalAccount, saveLocalAccount } from '@/features/auth/local-accounts';
 import { useProfileStore } from '@/store/profile-store';
 
 export default function SecurityScreen() {
@@ -24,11 +23,11 @@ export default function SecurityScreen() {
     if (current === next) { setError('Escolha uma palavra-passe diferente da actual.'); return; }
     setBusy(true);
     try {
-      const key = getPasswordKey(email);
-      const saved = Platform.OS === 'web' ? null : await SecureStore.getItemAsync(key);
+      const account = await findLocalAccount(email);
+      const saved = account?.password;
       if (!saved) { setError('Esta conta ainda não tem palavra-passe guardada neste dispositivo. A validação para contas antigas depende do servidor de autenticação.'); setBusy(false); return; }
       if (saved !== current) { setError('A palavra-passe actual não está correcta.'); setBusy(false); return; }
-      if (Platform.OS !== 'web') await SecureStore.setItemAsync(key, next);
+      await saveLocalAccount({ ...account!, password: next });
       setCurrent(''); setNext(''); setConfirm('');
       Alert.alert('Palavra-passe alterada', 'A nova palavra-passe foi guardada com segurança neste dispositivo.');
     } catch {

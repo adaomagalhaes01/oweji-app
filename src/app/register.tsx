@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail, Phone, Store, UserRound } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -7,7 +6,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/palette';
 import { createStoreId, useProfileStore } from '@/store/profile-store';
-import { getPasswordKey } from '@/features/auth/password';
+import { getLocalAccounts, saveLocalAccount, type LocalAccount } from '@/features/auth/local-accounts';
+import { useCartStore } from '@/store/cart-store';
+import { useFavoritesStore } from '@/store/favorites-store';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
@@ -23,6 +24,8 @@ export default function RegisterScreen() {
   const [error, setError] = useState('');
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const setSignedIn = useProfileStore((state) => state.setSignedIn);
+  const clearCart = useCartStore((state) => state.clearCart);
+  const clearFavorites = useFavoritesStore((state) => state.clearFavorites);
   const valid = useMemo(() => name.trim().length >= 3 && /^\S+@\S+\.\S+$/.test(email) && phone.trim().length >= 8 && password.length >= 6 && password === confirmation && (accountType === 'customer' || storeName.trim().length >= 2), [name, email, phone, password, confirmation, accountType, storeName]);
   const changeField = (setter: (value: string) => void) => (value: string) => {
     setError('');
@@ -36,15 +39,31 @@ export default function RegisterScreen() {
     setSubmitting(true);
     setError('');
     try {
-      if (Platform.OS !== 'web') await SecureStore.setItemAsync(getPasswordKey(email), password);
-      updateProfile({
+      const accounts = await getLocalAccounts();
+      if (accounts.some((account) => account.email.trim().toLowerCase() === email.trim().toLowerCase())) {
+        setError('Já existe uma conta com este email neste dispositivo. Entre ou use outro email.');
+        setSubmitting(false);
+        return;
+      }
+      const account: LocalAccount = {
         name: name.trim(),
         email: email.trim(),
         phone: phone.trim(),
+        password,
         accountType,
         storeId: accountType === 'merchant' ? createStoreId() : '',
         storeName: accountType === 'merchant' ? storeName.trim() : '',
-      });
+        storeDescription: '',
+        storePhone: '',
+        storeLocation: '',
+        storeLogoUri: null,
+        avatarUri: null,
+        addresses: [],
+      };
+      await saveLocalAccount(account);
+      updateProfile(account);
+      clearCart();
+      clearFavorites();
       setSignedIn(true);
       if (accountType === 'merchant') {
         router.replace({ pathname: '/splash', params: { destination: 'shop' } });

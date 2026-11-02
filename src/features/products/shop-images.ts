@@ -9,7 +9,7 @@ export const shopImages: Record<ShopImageKey, number> = {
   white: require('@/assets/products/top-white.jpg'),
 };
 
-export function getShopProductImage(product: Pick<ShopProduct, 'imageKey' | 'imageUri'>): number | ImageSource {
+export function getShopProductImage(product: Pick<ShopProduct, 'imageKey' | 'imageUri'>): number | ImageSource | null {
   if (product.imageUri) return { uri: product.imageUri };
-  return shopImages[product.imageKey] ?? shopImages.pink;
+  return null;
 }

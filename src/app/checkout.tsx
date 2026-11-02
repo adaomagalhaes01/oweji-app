@@ -14,6 +14,7 @@ import { useCartStore } from '@/store/cart-store';
 import type { DeliveryAddress } from '@/store/profile-store';
 import { useProfileStore } from '@/store/profile-store';
 import { useShopStore } from '@/store/shop-store';
+import { useNotificationStore } from '@/store/notification-store';
 
 const SHIPPING_FEE = 500;
 const MAX_RECEIPT_SIZE = 10 * 1024 * 1024;
@@ -23,6 +24,7 @@ export default function CheckoutScreen() {
   const clearCart = useCartStore((state) => state.clearCart);
   const sellerProducts = useShopStore((state) => state.products);
   const addOrder = useOrdersStore((state) => state.addOrder);
+  const addNotification = useNotificationStore((state) => state.addNotification);
   const profileName = useProfileStore((state) => state.name);
   const profileEmail = useProfileStore((state) => state.email);
   const profilePhone = useProfileStore((state) => state.phone);
@@ -31,7 +33,7 @@ export default function CheckoutScreen() {
   const catalog = useMemo(() => getProductCatalog(sellerProducts), [sellerProducts]);
   const lines = useMemo(() => items.flatMap((item) => {
     const product = catalog.find((entry) => entry.id === item.productId);
-    return product ? [{ ...item, name: product.name, unitPrice: product.price, merchantId: product.merchantId, available: product.available, stock: product.stock }] : [];
+    return product ? [{ ...item, name: product.name, unitPrice: product.price, merchantId: product.merchantId, merchantStoreName: product.merchantStoreName, available: product.available, stock: product.stock }] : [];
   }), [catalog, items]);
   const stockIssue = lines.some((line) => !line.available || (line.stock != null && line.quantity > line.stock));
   const subtotal = lines.reduce((total, item) => total + item.unitPrice * item.quantity, 0);
@@ -97,8 +99,9 @@ export default function CheckoutScreen() {
         const selected = savedAddresses.find((item) => item.id === selectedAddressId);
         saveAddress({ id: selected?.id, label: selected?.label ?? 'Morada de entrega', fullName: fullName.trim(), phone: phone.trim(), province: province.trim(), municipality: municipality.trim(), address: address.trim(), reference: reference.trim(), isDefault: selected?.isDefault ?? savedAddresses.length === 0 });
       }
-      addOrder({
-        lines: lines.map(({ productId, name, unitPrice, quantity, size, color, merchantId }) => ({ productId, name, unitPrice, quantity, size, color, merchantId })),
+      const merchantLines = lines.filter((line) => line.merchantId);
+      const orderId = addOrder({
+        lines: lines.map(({ productId, name, unitPrice, quantity, size, color, merchantId, merchantStoreName }) => ({ productId, name, unitPrice, quantity, size, color, merchantId, merchantStoreName })),
         subtotal,
         shipping,
         total: subtotal + shipping,
@@ -108,6 +111,8 @@ export default function CheckoutScreen() {
         receipt,
         delivery: { fullName: fullName.trim(), email: email.trim(), phone: phone.trim(), province: province.trim(), municipality: municipality.trim(), address: address.trim(), reference: reference.trim() },
       });
+      const merchants = new Map(merchantLines.map((line) => [line.merchantId!, line.merchantStoreName || 'A sua loja']));
+      merchants.forEach((storeName, storeId) => addNotification({ title: 'Novo pedido recebido', message: `O pedido #${orderId.slice(-8)} inclui produtos de ${storeName}. Toque para consultar os detalhes.`, storeId, orderId }));
       clearCart();
       router.replace('/orders');
     } catch {

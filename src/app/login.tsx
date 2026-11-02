@@ -1,5 +1,4 @@
 import { router } from 'expo-router';
-import * as SecureStore from 'expo-secure-store';
 import { ArrowLeft, Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -7,27 +6,38 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/palette';
 import { useProfileStore } from '@/store/profile-store';
-import { getPasswordKey } from '@/features/auth/password';
+import { getAccountsForIdentity, getLocalAccounts, normalizePhone, saveLocalAccount } from '@/features/auth/local-accounts';
 
 export default function LoginScreen() {
   const [identity, setIdentity] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const accountType = useProfileStore((state) => state.accountType);
-  const email = useProfileStore((state) => state.email);
-  const phone = useProfileStore((state) => state.phone);
+  const profile = useProfileStore((state) => state);
+  const updateProfile = useProfileStore((state) => state.updateProfile);
   const setSignedIn = useProfileStore((state) => state.setSignedIn);
   const [error, setError] = useState('');
   const valid = useMemo(() => identity.trim().length > 3 && password.length >= 6, [identity, password]);
   const signIn = async () => {
     setError('');
     try {
-      const normalizedIdentity = identity.trim().toLowerCase();
-      if (normalizedIdentity !== email.trim().toLowerCase() && normalizedIdentity !== phone.replace(/\s/g, '').toLowerCase()) { setError('Esta conta não foi encontrada neste dispositivo.'); return; }
-      const savedPassword = Platform.OS === 'web' ? null : await SecureStore.getItemAsync(getPasswordKey(email));
-      if (savedPassword && savedPassword !== password) { setError('A palavra-passe não está correcta.'); return; }
+      const accounts = await getLocalAccounts();
+      const matchingAccounts = getAccountsForIdentity(accounts, identity);
+      let selectedAccount = matchingAccounts.find((account) => account.password === password);
+      if (matchingAccounts.length > 0) {
+        if (!selectedAccount) { setError('A palavra-passe não está correcta.'); return; }
+        const { password: _password, ...savedProfile } = selectedAccount;
+        updateProfile(savedProfile);
+      } else {
+        const normalized = identity.trim().toLowerCase();
+        if (accounts.length > 0 || (normalized !== profile.email.trim().toLowerCase() && normalizePhone(normalized) !== normalizePhone(profile.phone))) { setError('Esta conta não foi encontrada neste dispositivo.'); return; }
+        // Migrates the pre-existing single-account setup to the local account registry.
+        const savedPassword = Platform.OS === 'web' ? null : await (await import('expo-secure-store')).getItemAsync('oweji-password');
+        if (savedPassword && savedPassword !== password) { setError('A palavra-passe não está correcta.'); return; }
+        selectedAccount = { name: profile.name, email: profile.email, phone: profile.phone, password, accountType: profile.accountType, storeId: profile.storeId, storeName: profile.storeName, storeDescription: profile.storeDescription, storePhone: profile.storePhone, storeLocation: profile.storeLocation, storeLogoUri: profile.storeLogoUri, avatarUri: profile.avatarUri, addresses: profile.addresses };
+        await saveLocalAccount(selectedAccount);
+      }
       setSignedIn(true);
-      router.replace({ pathname: '/splash', params: { destination: accountType === 'merchant' ? 'shop' : 'home' } });
+      router.replace({ pathname: '/splash', params: { destination: selectedAccount?.accountType === 'merchant' ? 'shop' : 'home' } });
     } catch { setError('Não foi possível validar os dados. Tente novamente.'); }
   };
   return (

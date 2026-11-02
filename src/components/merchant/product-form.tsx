@@ -1,13 +1,12 @@
 import { Image } from 'expo-image';
-import { ImagePlus, X } from 'lucide-react-native';
+import { ImagePlus, Image as ImageIcon, X } from 'lucide-react-native';
 import { useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Palette } from '@/constants/palette';
-import { productCategoryOptions, productColorOptions, productSizeOptions } from '@/features/merchant/product-options';
+import { productCategoryOptions } from '@/features/merchant/product-options';
 import { pickImageFromLibrary } from '@/features/media/pick-image';
 import { productConditionOptions } from '@/features/products/conditions';
-import { shopImages } from '@/features/products/shop-images';
 import type { ProductCondition } from '@/features/products/types';
 import type { ShopImageKey, ShopProduct } from '@/store/shop-store';
 
@@ -15,7 +14,7 @@ export type ProductFormValues = {
   name: string;
   description: string;
   price: number;
-  imageKey: ShopImageKey;
+  imageKey: ShopImageKey | null;
   imageUri: string | null;
   category: string;
   sizes: string[];
@@ -36,11 +35,11 @@ export function ProductForm({ initialProduct, submitting, onSubmit, onCancel }: 
   const [description, setDescription] = useState(initialProduct?.description ?? '');
   const [price, setPrice] = useState(initialProduct ? String(initialProduct.price) : '');
   const [stock, setStock] = useState(initialProduct ? String(initialProduct.stock) : '1');
-  const [imageKey, setImageKey] = useState<ShopImageKey>(initialProduct?.imageKey ?? 'pink');
+  const imageKey: ShopImageKey | null = null;
   const [imageUri, setImageUri] = useState<string | null>(initialProduct?.imageUri ?? null);
   const [category, setCategory] = useState(initialProduct?.category ?? productCategoryOptions[0].id);
-  const [sizes, setSizes] = useState<string[]>(initialProduct?.sizes ?? ['Único']);
-  const [colors, setColors] = useState<string[]>(initialProduct?.colors ?? [productColorOptions[0].value]);
+  const [sizes, setSizes] = useState(initialProduct?.sizes.join(', ') ?? '');
+  const [colors, setColors] = useState(initialProduct?.colors.join(', ') ?? '');
   const [condition, setCondition] = useState<ProductCondition | null>(initialProduct?.condition ?? null);
   const [picking, setPicking] = useState(false);
   const [error, setError] = useState('');
@@ -49,25 +48,15 @@ export function ProductForm({ initialProduct, submitting, onSubmit, onCancel }: 
   const stockValue = Number(stock.replace(',', '.'));
   const validPrice = Number.isFinite(priceValue) && priceValue > 0;
   const validStock = Number.isInteger(stockValue) && stockValue >= 0;
-  const canSubmit = name.trim().length > 2
-    && description.trim().length > 5
+  const sizeValues = sizes.split(',').map((item) => item.trim()).filter(Boolean);
+  const colorValues = colors.split(',').map((item) => item.trim()).filter(Boolean);
+  const canSubmit = name.trim().length > 0
+    && description.trim().length > 0
     && validPrice
     && validStock
-    && sizes.length > 0
-    && colors.length > 0
     && condition !== null;
 
-  const preview = imageUri ? { uri: imageUri } : shopImages[imageKey];
-
-  const toggleSize = (size: string) => {
-    setError('');
-    setSizes((current) => current.includes(size) ? current.filter((item) => item !== size) : [...current, size]);
-  };
-
-  const toggleColor = (color: string) => {
-    setError('');
-    setColors((current) => current.includes(color) ? current.filter((item) => item !== color) : [...current, color]);
-  };
+  const preview = imageUri ? { uri: imageUri } : null;
 
   const pickPhoto = async () => {
     if (picking) return;
@@ -85,7 +74,7 @@ export function ProductForm({ initialProduct, submitting, onSubmit, onCancel }: 
 
   const submit = () => {
     if (!canSubmit || !condition) {
-      setError('Preencha o nome, a descrição, o preço, o stock, a categoria, o tamanho, a cor e o estado da peça.');
+      setError('Indique o nome, a descrição, um preço válido, o stock e o estado da peça.');
       return;
     }
     onSubmit({
@@ -95,8 +84,8 @@ export function ProductForm({ initialProduct, submitting, onSubmit, onCancel }: 
       imageKey,
       imageUri,
       category,
-      sizes,
-      colors,
+      sizes: sizeValues.length ? sizeValues : ['Único'],
+      colors: colorValues.length ? colorValues : ['#E98A9A'],
       stock: stockValue,
       condition,
     });
@@ -116,7 +105,7 @@ export function ProductForm({ initialProduct, submitting, onSubmit, onCancel }: 
 
       <Text style={styles.fieldLabel}>Fotografia do produto</Text>
       <View style={styles.photoRow}>
-        <Image source={preview} style={styles.photoPreview} contentFit="cover" />
+        {preview ? <Image source={preview} style={styles.photoPreview} contentFit="cover" /> : <View style={[styles.photoPreview, styles.emptyPhoto]}><ImageIcon size={23} color={Palette.primaryDark} /><Text style={styles.emptyPhotoText}>Sem foto</Text></View>}
         <View style={styles.photoActions}>
           <Pressable accessibilityRole="button" disabled={picking} onPress={pickPhoto} style={[styles.photoButton, picking && styles.disabled]}>
             <ImagePlus size={16} color={Palette.primaryDark} />
@@ -124,29 +113,12 @@ export function ProductForm({ initialProduct, submitting, onSubmit, onCancel }: 
           </Pressable>
           {imageUri ? (
             <Pressable accessibilityRole="button" onPress={() => setImageUri(null)} style={styles.removePhoto}>
-              <Text style={styles.removePhotoText}>Usar imagem predefinida</Text>
+              <Text style={styles.removePhotoText}>Remover fotografia</Text>
             </Pressable>
           ) : (
             <Text style={styles.photoHint}>JPG, PNG ou WebP · enquadramento 4:5</Text>
           )}
         </View>
-      </View>
-      <Text style={styles.fieldLabel}>Ou escolha uma imagem predefinida</Text>
-      <View style={styles.imageChoices}>
-        {(Object.keys(shopImages) as ShopImageKey[]).map((key) => {
-          const selected = !imageUri && imageKey === key;
-          return (
-            <Pressable
-              key={key}
-              accessibilityRole="button"
-              accessibilityLabel={`Selecionar fotografia predefinida ${key}`}
-              accessibilityState={{ selected }}
-              onPress={() => { setImageKey(key); setImageUri(null); }}
-              style={[styles.imageChoice, selected && styles.imageChoiceSelected]}>
-              <Image source={shopImages[key]} style={styles.presetPreview} contentFit="cover" />
-            </Pressable>
-          );
-        })}
       </View>
 
       <ShopField label="Nome do produto" value={name} onChangeText={(value) => { setError(''); setName(value); }} placeholder="Ex.: Blusa de linho" />
@@ -170,34 +142,10 @@ export function ProductForm({ initialProduct, submitting, onSubmit, onCancel }: 
         })}
       </View>
 
-      <Text style={styles.fieldLabel}>Tamanhos disponíveis</Text>
-      <View style={styles.chipWrap}>
-        {productSizeOptions.map((size) => {
-          const selected = sizes.includes(size);
-          return (
-            <Pressable key={size} accessibilityRole="button" accessibilityState={{ selected }} onPress={() => toggleSize(size)} style={[styles.sizeChip, selected && styles.chipSelected]}>
-              <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{size}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      {sizes.length === 0 ? <Text style={styles.fieldError}>Seleccione pelo menos um tamanho.</Text> : null}
-
-      <Text style={styles.fieldLabel}>Cores disponíveis</Text>
-      <View style={styles.colorWrap}>
-        {productColorOptions.map((option) => {
-          const selected = colors.includes(option.value);
-          return (
-            <Pressable key={option.value} accessibilityRole="button" accessibilityLabel={`Cor ${option.label}`} accessibilityState={{ selected }} onPress={() => toggleColor(option.value)} style={styles.colorOption}>
-              <View style={[styles.colorOuter, selected && styles.colorOuterSelected]}>
-                <View style={[styles.colorDot, { backgroundColor: option.value }, option.value === '#FFFFFF' && styles.whiteColor]} />
-              </View>
-              <Text style={[styles.colorLabel, selected && styles.colorLabelSelected]}>{option.label}</Text>
-            </Pressable>
-          );
-        })}
-      </View>
-      {colors.length === 0 ? <Text style={styles.fieldError}>Seleccione pelo menos uma cor.</Text> : null}
+      <ShopField label="Tamanhos disponíveis" value={sizes} onChangeText={(value) => { setError(''); setSizes(value); }} placeholder="Ex.: XS, S, M ou 36, 38, 40" />
+      <Text style={styles.optionHint}>Escreva os tamanhos separados por vírgulas. Pode usar qualquer padrão.</Text>
+      <ShopField label="Cores disponíveis" value={colors} onChangeText={(value) => { setError(''); setColors(value); }} placeholder="Ex.: Azul-marinho, Areia, Coral" />
+      <Text style={styles.optionHint}>Escreva os nomes das cores separados por vírgulas.</Text>
 
       <Text style={styles.fieldLabel}>Estado da peça</Text>
       <View style={styles.chipWrap}>
@@ -220,7 +168,7 @@ export function ProductForm({ initialProduct, submitting, onSubmit, onCancel }: 
         style={[styles.publishButton, (!canSubmit || submitting) && styles.disabled]}>
         <Text style={styles.publishText}>{submitting ? 'A GUARDAR…' : initialProduct ? 'GUARDAR ALTERAÇÕES' : 'PUBLICAR PRODUTO'}</Text>
       </Pressable>
-      {!canSubmit ? <Text style={styles.formHint}>O produto só fica visível no catálogo depois de todos os campos estarem preenchidos.</Text> : null}
+      {!canSubmit ? <Text style={styles.formHint}>Preencha nome, descrição, preço, stock e seleccione o estado da peça. Tamanhos e cores são opcionais.</Text> : null}
     </View>
   );
 }
@@ -248,24 +196,27 @@ const styles = StyleSheet.create({
   formHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 },
   formHeaderCopy: { flex: 1 },
   formTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 15 },
-  formSubtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, lineHeight: 14, marginTop: 3 },
+  formSubtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 14, marginTop: 3 },
   closeButton: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: Palette.background },
   field: { marginTop: 9 },
-  fieldLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 10, marginBottom: 5, marginTop: 11 },
-  fieldError: { color: Palette.error, fontFamily: 'Poppins_400Regular', fontSize: 9, marginTop: 4 },
-  formError: { color: Palette.error, fontFamily: 'Poppins_500Medium', fontSize: 9, lineHeight: 15, marginTop: 11 },
-  input: { minHeight: 43, paddingHorizontal: 12, borderRadius: 12, backgroundColor: Palette.background, borderWidth: 1, borderColor: Palette.border, color: Palette.text, fontFamily: 'Poppins_400Regular', fontSize: 11 },
+  fieldLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12, marginBottom: 5, marginTop: 11 },
+  fieldError: { color: Palette.error, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 4 },
+  formError: { color: Palette.error, fontFamily: 'Poppins_500Medium', fontSize: 11, lineHeight: 15, marginTop: 11 },
+  input: { minHeight: 43, paddingHorizontal: 12, borderRadius: 12, backgroundColor: Palette.background, borderWidth: 1, borderColor: Palette.border, color: Palette.text, fontFamily: 'Poppins_400Regular', fontSize: 13 },
   multiline: { minHeight: 69, paddingTop: 10, textAlignVertical: 'top' },
   twoColumns: { flexDirection: 'row', gap: 9 },
   column: { flex: 1, minWidth: 0 },
   photoRow: { flexDirection: 'row', gap: 12 },
   photoPreview: { width: 82, height: 102, borderRadius: 13, backgroundColor: Palette.softPink },
+  emptyPhoto: { alignItems: 'center', justifyContent: 'center', gap: 4 },
+  emptyPhotoText: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 10 },
+  optionHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 4 },
   photoActions: { flex: 1, justifyContent: 'center' },
   photoButton: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: Palette.primary, backgroundColor: '#FFF8FA' },
-  photoButtonText: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 8, letterSpacing: 0.3 },
-  photoHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, marginTop: 6 },
+  photoButtonText: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 0.3 },
+  photoHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 6 },
   removePhoto: { alignSelf: 'flex-start', paddingVertical: 4, marginTop: 4 },
-  removePhotoText: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 9 },
+  removePhotoText: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 11 },
   imageChoices: { flexDirection: 'row', gap: 9, marginTop: 3 },
   imageChoice: { width: 50, height: 59, padding: 3, borderRadius: 11, borderWidth: 1, borderColor: Palette.border },
   imageChoiceSelected: { borderColor: Palette.primary, borderWidth: 2 },
@@ -274,7 +225,7 @@ const styles = StyleSheet.create({
   chip: { paddingHorizontal: 10, paddingVertical: 8, borderRadius: 11, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.background },
   sizeChip: { minWidth: 38, alignItems: 'center', paddingHorizontal: 9, paddingVertical: 8, borderRadius: 11, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.background },
   chipSelected: { borderColor: Palette.primary, backgroundColor: Palette.softPink },
-  chipText: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 9 },
+  chipText: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 11 },
   chipTextSelected: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold' },
   colorWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
   colorOption: { alignItems: 'center', width: 42 },
@@ -282,10 +233,10 @@ const styles = StyleSheet.create({
   colorOuterSelected: { borderColor: Palette.primaryDark },
   colorDot: { width: 23, height: 23, borderRadius: 12, borderWidth: 1, borderColor: Palette.border },
   whiteColor: { borderColor: '#D8CCD0' },
-  colorLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 7, marginTop: 2 },
+  colorLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, marginTop: 2 },
   colorLabelSelected: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold' },
   publishButton: { minHeight: 47, alignItems: 'center', justifyContent: 'center', borderRadius: 13, marginTop: 15, backgroundColor: Palette.primary },
-  publishText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 0.4 },
+  publishText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 0.4 },
   disabled: { opacity: 0.45 },
-  formHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, lineHeight: 14, textAlign: 'center', marginTop: 8 },
+  formHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 14, textAlign: 'center', marginTop: 8 },
 });

@@ -36,8 +36,8 @@ const styles = StyleSheet.create({
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
   icon: { width: 64, height: 64, alignItems: 'center', justifyContent: 'center', borderRadius: 32, backgroundColor: Palette.softPink },
   title: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 20, marginTop: 16, textAlign: 'center' },
-  text: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12, lineHeight: 19, textAlign: 'center', marginTop: 8 },
+  text: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 13, lineHeight: 19, textAlign: 'center', marginTop: 8 },
   primaryCTA: { minHeight: 48, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, marginTop: 20, borderRadius: 14, backgroundColor: Palette.primary },
-  primaryCTAText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 0.4 },
-  link: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 11, marginTop: 14 },
+  primaryCTAText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 0.4 },
+  link: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 13, marginTop: 14 },
 });

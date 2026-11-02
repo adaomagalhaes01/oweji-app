@@ -6,6 +6,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/palette';
+import { findLocalAccount, saveLocalAccount } from '@/features/auth/local-accounts';
 import { useFavoritesStore } from '@/store/favorites-store';
 import { useProfileStore } from '@/store/profile-store';
 import { useOrdersStore } from '@/store/orders-store';
@@ -20,6 +21,7 @@ export default function ProfileScreen() {
   const accountType = useProfileStore((state) => state.accountType);
   const avatarUri = useProfileStore((state) => state.avatarUri);
   const storeName = useProfileStore((state) => state.storeName);
+  const storeId = useProfileStore((state) => state.storeId);
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const setSignedIn = useProfileStore((state) => state.setSignedIn);
   const [editing, setEditing] = useState(false);
@@ -33,14 +35,14 @@ export default function ProfileScreen() {
       if (!result.canceled) updateProfile({ avatarUri: result.assets[0].uri });
     } catch { Alert.alert('Não foi possível abrir as fotografias', 'Tente novamente.'); }
   };
-  const signOut = () => Alert.alert('Sair da conta', 'Tem a certeza de que pretende sair?', [{ text: 'Cancelar', style: 'cancel' }, { text: 'Sair', style: 'destructive', onPress: () => { setSignedIn(false); router.replace('/login'); } }]);
+  const signOut = () => Alert.alert('Sair da conta', 'Tem a certeza de que pretende sair?', [{ text: 'Cancelar', style: 'cancel' }, { text: 'Sair', style: 'destructive', onPress: async () => { const current = useProfileStore.getState(); const account = await findLocalAccount(current.email); if (account) await saveLocalAccount({ ...account, name: current.name, phone: current.phone, storeId: current.storeId, storeName: current.storeName, storeDescription: current.storeDescription, storePhone: current.storePhone, storeLocation: current.storeLocation, storeLogoUri: current.storeLogoUri, avatarUri: current.avatarUri, addresses: current.addresses }); setSignedIn(false); router.replace('/login'); } }]);
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <Text style={styles.kicker}>A SUA CONTA OWEJI</Text><Text style={styles.title}>Meu perfil</Text>
         <View style={styles.userCard}><Pressable accessibilityRole="button" accessibilityLabel="Alterar foto de perfil" onPress={pickAvatar} style={styles.avatarWrap}>{avatarUri ? <Image source={{ uri: avatarUri }} style={styles.avatarImage} contentFit="cover" /> : <View style={styles.avatar}><Text style={styles.avatarText}>{name.trim().charAt(0).toUpperCase() || 'U'}</Text></View>}<View style={styles.cameraBadge}><Camera size={12} color={Palette.surface} /></View></Pressable><View style={styles.userInfo}><Text style={styles.userName}>{name}</Text><Text style={styles.userEmail}>{email}</Text><Pressable onPress={() => editing ? setEditing(false) : startEditing()}><Text style={styles.editLink}>{editing ? 'Cancelar edição' : 'Editar os meus dados'}</Text></Pressable></View></View>
         {editing ? <View style={styles.editCard}><ProfileField label="Nome completo" value={editName} onChangeText={setEditName} /><ProfileField label="Email" value={editEmail} onChangeText={setEditEmail} keyboardType="email-address" /><ProfileField label="Telefone" value={editPhone} onChangeText={setEditPhone} keyboardType="phone-pad" /><Pressable accessibilityRole="button" onPress={() => { updateProfile({ name: editName.trim(), email: editEmail.trim(), phone: editPhone.trim() }); setEditing(false); }} style={styles.saveButton}><Text style={styles.saveButtonText}>GUARDAR ALTERAÇÕES</Text></Pressable></View> : null}
-        {accountType === 'merchant' ? <Pressable accessibilityRole="button" onPress={() => router.push('/shop')} style={styles.shopBanner}><View style={styles.shopBannerCopy}><Text style={styles.shopBannerTitle}>{storeName || 'A sua loja'}</Text><Text style={styles.shopBannerSubtitle}>Gerir produtos e acompanhar vendas</Text></View><ChevronRight size={19} color={Palette.primaryDark} /></Pressable> : null}
+        {accountType === 'merchant' && storeId ? <Pressable accessibilityRole="button" onPress={() => router.push('/shop')} style={styles.shopBanner}><View style={styles.shopBannerCopy}><Text style={styles.shopBannerTitle}>{storeName || 'A sua loja'}</Text><Text style={styles.shopBannerSubtitle}>Gerir produtos e acompanhar vendas</Text></View><ChevronRight size={19} color={Palette.primaryDark} /></Pressable> : null}
         <Text style={styles.sectionTitle}>A minha conta</Text>
         <View style={styles.menuCard}>
           <MenuRow icon={<MapPin size={19} color={Palette.primaryDark} />} label="Endereços de entrega" onPress={() => router.push('/addresses')} />

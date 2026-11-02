@@ -10,6 +10,7 @@ export type OrderLine = {
   size: string;
   color: string;
   merchantId?: string;
+  merchantStoreName?: string;
 };
 
 export type OrderStatus = 'awaiting-confirmation' | 'payment-review' | 'confirmed' | 'preparing' | 'shipped' | 'delivered' | 'cancelled';
@@ -44,7 +45,8 @@ type OrdersState = {
   addOrder: (order: Omit<LocalOrder, 'id' | 'createdAt'>) => string;
   updateOrderReceipt: (id: string, receipt: OrderReceipt) => void;
   updateOrderStatus: (id: string, status: OrderStatus) => void;
-  claimLegacyOrderLines: (merchantId: string, productIds: string[]) => void;
+  claimLegacyOrderLines: (merchantId: string, productIds: string[], merchantStoreName?: string) => void;
+  clearOrders: () => void;
 };
 
 export const useOrdersStore = create<OrdersState>()(
@@ -63,17 +65,19 @@ export const useOrdersStore = create<OrdersState>()(
           : order),
       })),
       updateOrderStatus: (id, status) => set((state) => ({ orders: state.orders.map((order) => order.id === id ? { ...order, status } : order) })),
-      claimLegacyOrderLines: (merchantId, productIds) => set((state) => {
+      clearOrders: () => set({ orders: [] }),
+      claimLegacyOrderLines: (merchantId, productIds, merchantStoreName) => set((state) => {
         if (!merchantId || !productIds.length) return state;
         const ownedIds = new Set(productIds);
         let changed = false;
         const orders = state.orders.map((order) => {
           let orderChanged = false;
           const lines = order.lines.map((line) => {
-            if (line.merchantId || !ownedIds.has(line.productId)) return line;
+            if (!ownedIds.has(line.productId) || (line.merchantId && line.merchantId !== merchantId)) return line;
+            if (line.merchantId === merchantId && (line.merchantStoreName || !merchantStoreName)) return line;
             orderChanged = true;
             changed = true;
-            return { ...line, merchantId };
+            return { ...line, merchantId, merchantStoreName: line.merchantStoreName || merchantStoreName };
           });
           return orderChanged ? { ...order, lines } : order;
         });

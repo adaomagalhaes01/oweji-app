@@ -5,12 +5,14 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 type FavoritesState = {
   productIds: string[];
   toggleFavorite: (productId: string) => void;
+  clearFavorites: () => void;
 };
 
 export const useFavoritesStore = create<FavoritesState>()(
   persist(
     (set) => ({
       productIds: [],
+      clearFavorites: () => set({ productIds: [] }),
       toggleFavorite: (productId) =>
         set((state) => ({
           productIds: state.productIds.includes(productId)

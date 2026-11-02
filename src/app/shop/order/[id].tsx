@@ -1,7 +1,8 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { Image } from 'expo-image';
 import { ArrowLeft, Check, CheckCircle2, CircleAlert, Clock3, Home, MapPin, Package, ShieldCheck, Truck, UserRound, X } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MerchantStatusPill } from '@/components/merchant/merchant-ui';
@@ -18,8 +19,8 @@ import { useShopStore } from '@/store/shop-store';
 const statusActions: { status: OrderStatus; label: string; icon: typeof Check }[] = [
   { status: 'confirmed', label: 'Confirmar', icon: Check },
   { status: 'preparing', label: 'Preparar', icon: Package },
-  { status: 'shipped', label: 'Enviar', icon: Truck },
-  { status: 'delivered', label: 'Entregue', icon: Home },
+  { status: 'shipped', label: 'Fazer entrega', icon: Truck },
+  { status: 'delivered', label: 'Confirmar entrega', icon: Home },
   { status: 'cancelled', label: 'Cancelar', icon: X },
 ];
 
@@ -30,6 +31,7 @@ export default function MerchantOrderDetailScreen() {
   const order = useOrdersStore((state) => state.orders.find((item) => item.id === id));
   const updateOrderStatus = useOrdersStore((state) => state.updateOrderStatus);
   const [feedback, setFeedback] = useState('');
+  const [receiptPreviewVisible, setReceiptPreviewVisible] = useState(false);
 
   useEffect(() => {
     if (!feedback) return undefined;
@@ -42,6 +44,8 @@ export default function MerchantOrderDetailScreen() {
   const lines = useMemo(() => order?.lines.filter((line) => line.merchantId ? line.merchantId === storeId : ownedProductIds.has(line.productId)) ?? [], [order, ownedProductIds, storeId]);
   const subtotal = lines.reduce((sum, line) => sum + line.unitPrice * line.quantity, 0);
   const totalItems = lines.reduce((sum, line) => sum + line.quantity, 0);
+  const otherLines = order?.lines.filter((line) => !lines.includes(line)) ?? [];
+  const receiptIsImage = Boolean(order?.receipt && (order.receipt.mimeType?.startsWith('image/') || /\.(png|jpe?g|webp|gif)$/i.test(order.receipt.name)));
 
   if (!order || lines.length === 0) {
     return (
@@ -62,6 +66,13 @@ export default function MerchantOrderDetailScreen() {
 
   const changeStatus = (status: OrderStatus) => {
     if (status === order.status) return;
+    if (status === 'delivered') {
+      Alert.alert('Confirmar entrega', 'Confirma que o pedido foi entregue ao cliente? Só depois desta confirmação a venda entra no histórico.', [
+        { text: 'Ainda não', style: 'cancel' },
+        { text: 'Confirmar entrega', onPress: () => applyStatus(status) },
+      ]);
+      return;
+    }
     if (status === 'cancelled') {
       Alert.alert('Cancelar pedido', 'Esta alteração também será apresentada ao cliente. Quer continuar?', [
         { text: 'Não', style: 'cancel' },
@@ -78,6 +89,7 @@ export default function MerchantOrderDetailScreen() {
   };
 
   return (
+    <>
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.header}>
@@ -127,11 +139,19 @@ export default function MerchantOrderDetailScreen() {
           {order.lines.length > lines.length ? <Text style={styles.otherLinesNote}>Este pedido também inclui artigos de outras lojas. O total abaixo corresponde apenas à sua loja.</Text> : null}
         </View>
 
+        {otherLines.length ? <View style={styles.card}>
+          <Text style={styles.sectionTitle}>Outros artigos deste pedido</Text>
+          {otherLines.map((line, index) => <View key={`${line.productId}-${line.size}-${line.color}-${index}`} style={styles.line}>
+            <View style={styles.lineCopy}><Text style={styles.lineName}>{line.name}</Text><Text style={styles.lineMeta}>{line.merchantStoreName || 'Outra loja'} · {line.quantity}× {formatPrice(line.unitPrice)}</Text><Text style={styles.lineMeta}>{[line.size ? `Tamanho ${line.size}` : '', line.color].filter(Boolean).join(' · ') || 'Sem opções'}</Text></View>
+            <Text style={styles.linePrice}>{formatPrice(line.unitPrice * line.quantity)}</Text>
+          </View>)}
+        </View> : null}
+
         <View style={styles.card}>
           <Text style={styles.sectionTitle}>Actualizar estado</Text>
           <Text style={styles.sectionHint}>A alteração é apresentada ao cliente no acompanhamento do pedido.</Text>
           <View style={styles.statusActions}>
-            {statusActions.map((action) => {
+            {statusActions.filter((action) => action.status !== 'delivered' || order.status === 'shipped').map((action) => {
               const Icon = action.icon;
               const selected = order.status === action.status;
               const destructive = action.status === 'cancelled';
@@ -178,6 +198,10 @@ export default function MerchantOrderDetailScreen() {
               </View>
             </View>
           ) : <Text style={styles.pendingReceipt}>Comprovativo ainda não anexado</Text>}
+          {order.receipt && receiptIsImage ? <Pressable accessibilityRole="button" accessibilityLabel="Ampliar comprovativo" onPress={() => setReceiptPreviewVisible(true)}><Image source={{ uri: order.receipt.uri }} style={styles.receiptPreview} contentFit="contain" /></Pressable> : null}
+          {order.receipt && !receiptIsImage ? <Pressable accessibilityRole="button" onPress={() => Linking.openURL(order.receipt!.uri).catch(() => Alert.alert('Não foi possível abrir o comprovativo', 'O leitor de PDF deste dispositivo não conseguiu abrir o ficheiro.'))} style={styles.openReceipt}><Text style={styles.openReceiptText}>ABRIR COMPROVATIVO PDF</Text></Pressable> : null}
+          <View style={styles.paymentTotals}><Text style={styles.paymentTotalLabel}>Subtotal do pedido</Text><Text style={styles.paymentTotalValue}>{formatPrice(order.subtotal)}</Text></View>
+          <View style={styles.paymentTotals}><Text style={styles.paymentTotalLabel}>Entrega</Text><Text style={styles.paymentTotalValue}>{order.shipping ? formatPrice(order.shipping) : 'Grátis'}</Text></View>
           <View style={styles.orderTotalRow}><Text style={styles.orderTotalLabel}>Total do pedido completo</Text><Text style={styles.orderTotalValue}>{formatPrice(order.total)}</Text></View>
         </View>
 
@@ -198,6 +222,10 @@ export default function MerchantOrderDetailScreen() {
         </Pressable>
       </ScrollView>
     </SafeAreaView>
+    <Modal visible={receiptPreviewVisible && Boolean(order.receipt)} animationType="fade" presentationStyle="fullScreen" onRequestClose={() => setReceiptPreviewVisible(false)}>
+      {order.receipt ? <SafeAreaView style={styles.receiptScreen}><View style={styles.receiptViewerHeader}><Text numberOfLines={1} style={styles.receiptViewerTitle}>{order.receipt.name}</Text><Pressable accessibilityRole="button" accessibilityLabel="Fechar comprovativo" onPress={() => setReceiptPreviewVisible(false)} style={styles.receiptViewerClose}><X size={20} color={Palette.text} /></Pressable></View><Image source={{ uri: order.receipt.uri }} style={styles.receiptFullImage} contentFit="contain" /></SafeAreaView> : null}
+    </Modal>
+    </>
   );
 }
 
@@ -207,63 +235,74 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14 },
   backButton: { width: 42, height: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 21, backgroundColor: Palette.surface },
   headerCopy: { flex: 1 },
-  kicker: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 8, letterSpacing: 1.5 },
+  kicker: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 1.5 },
   title: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 20, marginTop: 2 },
   feedback: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, padding: 11, marginBottom: 11, borderRadius: 13, backgroundColor: '#E5F3EA' },
-  feedbackText: { flex: 1, color: '#286744', fontFamily: 'Poppins_500Medium', fontSize: 9, lineHeight: 15 },
+  feedbackText: { flex: 1, color: '#286744', fontFamily: 'Poppins_500Medium', fontSize: 11, lineHeight: 15 },
   hero: { flexDirection: 'row', alignItems: 'center', gap: 11, padding: 15, marginBottom: 12, borderRadius: 18, backgroundColor: Palette.softPink },
   heroIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: Palette.surface },
   heroCopy: { flex: 1 },
-  heroDate: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 10 },
-  heroMeta: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, marginTop: 3 },
+  heroDate: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
+  heroMeta: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 3 },
   statusPill: { maxWidth: '42%', paddingHorizontal: 8, paddingVertical: 5, borderRadius: 10, backgroundColor: Palette.surface },
-  statusPillText: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 7, textAlign: 'center' },
+  statusPillText: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 9, textAlign: 'center' },
   card: { padding: 15, marginBottom: 12, borderRadius: 18, backgroundColor: Palette.surface },
-  sectionTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 12, marginBottom: 11 },
-  sectionHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, lineHeight: 14, marginTop: -6, marginBottom: 10 },
+  sectionTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 13, marginBottom: 11 },
+  sectionHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 14, marginTop: -6, marginBottom: 10 },
   line: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingVertical: 9, borderTopWidth: 1, borderTopColor: Palette.border },
   lineQuantity: { width: 27, height: 27, alignItems: 'center', justifyContent: 'center', borderRadius: 9, backgroundColor: Palette.background },
-  lineQuantityText: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 8 },
+  lineQuantityText: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 10 },
   lineCopy: { flex: 1, minWidth: 0 },
-  lineName: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 10 },
-  lineMeta: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, marginTop: 2 },
-  lineUnit: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 7, marginTop: 1 },
-  linePrice: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 10 },
+  lineName: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
+  lineMeta: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 2 },
+  lineUnit: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, marginTop: 1 },
+  linePrice: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 9, paddingTop: 11, borderTopWidth: 1, borderTopColor: Palette.border },
-  totalLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 10 },
-  totalValue: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 13 },
-  otherLinesNote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, lineHeight: 13, marginTop: 8 },
+  totalLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
+  totalValue: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 14 },
+  otherLinesNote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, lineHeight: 13, marginTop: 8 },
   statusActions: { flexDirection: 'row', flexWrap: 'wrap', gap: 7 },
   statusButton: { minHeight: 36, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingHorizontal: 11, borderRadius: 11, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.background },
   statusButtonSelected: { backgroundColor: Palette.primaryDark, borderColor: Palette.primaryDark },
   statusButtonDanger: { backgroundColor: '#FFF1F3', borderColor: '#F4C9D0' },
   statusButtonDisabled: { opacity: 0.75 },
-  statusButtonText: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 8 },
+  statusButtonText: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 10 },
   statusButtonTextSelected: { color: Palette.surface },
   statusButtonTextDanger: { color: Palette.error },
   paymentNotice: { flexDirection: 'row', alignItems: 'center', gap: 7, padding: 9, marginTop: 10, borderRadius: 11, backgroundColor: '#FFF1D9' },
-  paymentNoticeText: { flex: 1, color: '#805B20', fontFamily: 'Poppins_500Medium', fontSize: 8, lineHeight: 13 },
+  paymentNoticeText: { flex: 1, color: '#805B20', fontFamily: 'Poppins_500Medium', fontSize: 10, lineHeight: 13 },
   infoRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 7 },
-  infoStrong: { flex: 1, color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 10 },
-  infoText: { flex: 1, color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, lineHeight: 15 },
-  infoDetail: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, lineHeight: 15, marginTop: 3 },
+  infoStrong: { flex: 1, color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
+  infoText: { flex: 1, color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 15 },
+  infoDetail: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 15, marginTop: 3 },
   receipt: { flexDirection: 'row', alignItems: 'center', gap: 8, padding: 10, marginTop: 10, borderRadius: 12, backgroundColor: '#EAF5EE' },
   receiptCopy: { flex: 1 },
-  receiptTitle: { color: '#286744', fontFamily: 'Poppins_600SemiBold', fontSize: 9 },
-  receiptName: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, marginTop: 2 },
-  pendingReceipt: { color: '#805B20', fontFamily: 'Poppins_500Medium', fontSize: 9, marginTop: 8 },
+  receiptTitle: { color: '#286744', fontFamily: 'Poppins_600SemiBold', fontSize: 11 },
+  receiptName: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 2 },
+  receiptPreview: { width: '100%', height: 180, marginTop: 9, borderRadius: 12, backgroundColor: Palette.background },
+  openReceipt: { minHeight: 40, alignItems: 'center', justifyContent: 'center', marginTop: 9, borderRadius: 11, backgroundColor: Palette.softPink },
+  openReceiptText: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 11 },
+  paymentTotals: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 11 },
+  paymentTotalLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11 },
+  paymentTotalValue: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 11 },
+  receiptScreen: { flex: 1, backgroundColor: '#141216' },
+  receiptViewerHeader: { minHeight: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, paddingHorizontal: 16 },
+  receiptViewerTitle: { flex: 1, color: Palette.surface, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
+  receiptViewerClose: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 13, backgroundColor: '#302D32' },
+  receiptFullImage: { flex: 1, width: '100%' },
+  pendingReceipt: { color: '#805B20', fontFamily: 'Poppins_500Medium', fontSize: 11, marginTop: 8 },
   orderTotalRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 12, paddingTop: 11, borderTopWidth: 1, borderTopColor: Palette.border },
-  orderTotalLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9 },
-  orderTotalValue: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 10 },
+  orderTotalLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11 },
+  orderTotalValue: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 12 },
   localNotice: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, padding: 12, borderRadius: 14, backgroundColor: Palette.softPink },
-  noticeText: { flex: 1, color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, lineHeight: 15 },
+  noticeText: { flex: 1, color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 15 },
   cancelledNotice: { flexDirection: 'row', alignItems: 'center', gap: 7, padding: 10, marginTop: 10, borderRadius: 12, backgroundColor: '#FCE7EC' },
-  cancelledText: { flex: 1, color: Palette.error, fontFamily: 'Poppins_500Medium', fontSize: 8, lineHeight: 13 },
+  cancelledText: { flex: 1, color: Palette.error, fontFamily: 'Poppins_500Medium', fontSize: 10, lineHeight: 13 },
   ordersButton: { minHeight: 46, alignItems: 'center', justifyContent: 'center', marginTop: 12, borderRadius: 13, borderWidth: 1, borderColor: Palette.primary },
-  ordersButtonText: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 9, letterSpacing: 0.4 },
+  ordersButtonText: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 11, letterSpacing: 0.4 },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
   missingTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 18, marginTop: 12 },
-  missingText: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, textAlign: 'center', marginTop: 6 },
+  missingText: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 13, textAlign: 'center', marginTop: 6 },
   missingButton: { minHeight: 43, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, marginTop: 16, borderRadius: 12, backgroundColor: Palette.primary },
-  missingButtonText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 9, letterSpacing: 0.4 },
+  missingButtonText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 11, letterSpacing: 0.4 },
 });

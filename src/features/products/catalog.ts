@@ -22,6 +22,7 @@ export function getProductCatalog(sellerProducts: ShopProduct[]): Product[] {
         stock,
         condition: item.condition ?? 'good-used',
         merchantId: item.merchantId,
+        merchantStoreName: item.merchantStoreName || 'Loja OWEJI',
       };
     }),
   ];

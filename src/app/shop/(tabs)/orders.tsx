@@ -14,6 +14,11 @@ import { useProfileStore } from '@/store/profile-store';
 import { useShopStore } from '@/store/shop-store';
 
 type OrderFilter = 'all' | 'pending' | 'active' | 'done';
+const exampleOrders = [
+  { id: 'EX-2048', customer: 'Marta Afonso', item: 'Vestido estampado', total: '28 500 Kz', date: 'Hoje · 09:40', status: 'Por confirmar' },
+  { id: 'EX-2047', customer: 'João Manuel', item: 'Camisa de linho · 2 unidades', total: '34 000 Kz', date: 'Ontem · 16:15', status: 'Em preparação' },
+  { id: 'EX-2046', customer: 'Lúcia Domingos', item: 'Conjunto tradicional', total: '42 000 Kz', date: '22 Out · 11:20', status: 'Concluído' },
+];
 
 const filters: { value: OrderFilter; label: string }[] = [
   { value: 'all', label: 'Todos' },
@@ -122,6 +127,18 @@ export default function MerchantOrdersScreen() {
           );
         })}
 
+        {sales.length === 0 && filter === 'all' ? (
+          <View style={styles.examples}>
+            <View style={styles.examplesHeader}><View style={styles.examplesTitleWrap}><Text style={styles.examplesTitle}>Pré-visualização de pedidos</Text><Text style={styles.examplesSubtitle}>Exemplos para conhecer esta área</Text></View><View style={styles.exampleBadge}><Text style={styles.exampleBadgeText}>EXEMPLO</Text></View></View>
+            {exampleOrders.map((example) => <View key={example.id} style={styles.exampleCard}>
+              <View style={styles.exampleTop}><Text style={styles.exampleId}>Pedido #{example.id}</Text><Text style={styles.exampleDate}>{example.date}</Text></View>
+              <Text style={styles.exampleCustomer}>{example.customer}</Text>
+              <View style={styles.exampleBottom}><View style={styles.exampleDetails}><Text style={styles.exampleItem}>{example.item}</Text><Text style={styles.exampleStatus}>{example.status}</Text></View><Text style={styles.exampleTotal}>{example.total}</Text></View>
+            </View>)}
+            <Text style={styles.exampleFootnote}>Estes cartões são apenas ilustrativos e não representam encomendas reais.</Text>
+          </View>
+        ) : null}
+
         <Text style={styles.footnote}>O estado é local e partilhado com a área de pedidos do cliente neste dispositivo. Altere-o no detalhe de cada pedido.</Text>
       </ScrollView>
     </SafeAreaView>
@@ -134,30 +151,48 @@ const styles = StyleSheet.create({
   summary: { flexDirection: 'row', alignItems: 'center', gap: 10, padding: 12, marginTop: 16, borderRadius: 15, backgroundColor: Palette.softPink },
   summaryIcon: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: Palette.surface },
   summaryCopy: { flex: 1 },
-  summaryTitle: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 10 },
-  summaryText: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, marginTop: 2 },
+  summaryTitle: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 12 },
+  summaryText: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 2 },
   filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 7, marginTop: 15, marginBottom: 13 },
   filterButton: { flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 11, paddingVertical: 8, borderRadius: 13, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
   filterButtonSelected: { backgroundColor: Palette.primary, borderColor: Palette.primary },
-  filterText: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 9 },
+  filterText: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 11 },
   filterTextSelected: { color: Palette.surface },
   filterCount: { minWidth: 17, height: 17, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3, borderRadius: 9, backgroundColor: Palette.background },
   filterCountSelected: { backgroundColor: 'rgba(255,255,255,0.24)' },
-  filterCountText: { color: Palette.textSecondary, fontFamily: 'Poppins_700Bold', fontSize: 7 },
+  filterCountText: { color: Palette.textSecondary, fontFamily: 'Poppins_700Bold', fontSize: 9 },
   filterCountTextSelected: { color: Palette.surface },
   orderCard: { padding: 13, marginBottom: 11, borderRadius: 17, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
   orderHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
   orderHeading: { flex: 1 },
-  orderId: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 11 },
-  orderDate: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, marginTop: 2 },
+  orderId: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 13 },
+  orderDate: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 2 },
   customerRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 6 },
   customerIcon: { width: 23, height: 23, alignItems: 'center', justifyContent: 'center', borderRadius: 8, backgroundColor: Palette.background },
-  customerName: { flex: 1, color: Palette.text, fontFamily: 'Poppins_500Medium', fontSize: 9 },
-  customerMeta: { flex: 1, color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8 },
+  customerName: { flex: 1, color: Palette.text, fontFamily: 'Poppins_500Medium', fontSize: 11 },
+  customerMeta: { flex: 1, color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10 },
   items: { flexDirection: 'row', alignItems: 'center', gap: 9, paddingTop: 10, marginTop: 10, borderTopWidth: 1, borderTopColor: Palette.border },
   itemsIcon: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 11, backgroundColor: Palette.softPink },
   itemsCopy: { flex: 1, minWidth: 0 },
-  itemsName: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 9 },
-  itemsMeta: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 8, marginTop: 3 },
-  footnote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, lineHeight: 14, marginTop: 6 },
+  itemsName: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 11 },
+  itemsMeta: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 3 },
+  footnote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 14, marginTop: 6 },
+  examples: { padding: 13, marginTop: 12, borderRadius: 17, backgroundColor: '#FFF9F5', borderWidth: 1, borderColor: '#EBDDD5' },
+  examplesHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 5 },
+  examplesTitleWrap: { flex: 1 },
+  examplesTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 13 },
+  examplesSubtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 2 },
+  exampleBadge: { paddingHorizontal: 7, paddingVertical: 4, borderRadius: 7, backgroundColor: '#F1E4DC' },
+  exampleBadgeText: { color: '#765344', fontFamily: 'Poppins_700Bold', fontSize: 8, letterSpacing: 0.5 },
+  exampleCard: { padding: 10, marginTop: 7, borderRadius: 12, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
+  exampleTop: { flexDirection: 'row', justifyContent: 'space-between', gap: 7 },
+  exampleId: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 10 },
+  exampleDate: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9 },
+  exampleCustomer: { color: Palette.text, fontFamily: 'Poppins_500Medium', fontSize: 11, marginTop: 4 },
+  exampleBottom: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginTop: 6, paddingTop: 6, borderTopWidth: 1, borderTopColor: Palette.border },
+  exampleDetails: { flex: 1 },
+  exampleItem: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10 },
+  exampleStatus: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 9, marginTop: 2 },
+  exampleTotal: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 11 },
+  exampleFootnote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, lineHeight: 11, marginTop: 7 },
 });

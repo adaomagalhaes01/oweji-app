@@ -8,9 +8,11 @@ import { useShopStore } from '@/store/shop-store';
 export function useMerchantSession() {
   const accountType = useProfileStore((state) => state.accountType);
   const storeId = useProfileStore((state) => state.storeId);
+  const storeName = useProfileStore((state) => state.storeName);
   const updateProfile = useProfileStore((state) => state.updateProfile);
   const products = useShopStore((state) => state.products);
   const claimLegacyProducts = useShopStore((state) => state.claimLegacyProducts);
+  const updateProduct = useShopStore((state) => state.updateProduct);
   const claimLegacyOrderLines = useOrdersStore((state) => state.claimLegacyOrderLines);
   const ownedProductIds = useMemo(
     () => getMerchantProducts(products, storeId).map((product) => `seller-${product.id}`),
@@ -24,6 +26,11 @@ export function useMerchantSession() {
   useEffect(() => {
     if (accountType !== 'merchant' || !storeId) return;
     claimLegacyProducts(storeId);
-    claimLegacyOrderLines(storeId, ownedProductIds);
-  }, [accountType, claimLegacyOrderLines, claimLegacyProducts, ownedProductIds, storeId]);
+    products.forEach((product) => {
+      if (product.merchantId === storeId && !product.merchantStoreName && storeName) {
+        updateProduct(product.id, storeId, { merchantStoreName: storeName });
+      }
+    });
+    claimLegacyOrderLines(storeId, ownedProductIds, storeName);
+  }, [accountType, claimLegacyOrderLines, claimLegacyProducts, ownedProductIds, products, storeId, storeName, updateProduct]);
 }
