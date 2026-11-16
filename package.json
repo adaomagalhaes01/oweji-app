@@ -58,6 +58,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "admin": "node admin-web/serve.js",
     "lint": "expo lint"
   },
   "private": true

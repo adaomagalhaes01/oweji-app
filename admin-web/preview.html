@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="pt-AO">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OWEJI · Painel Administrativo & Comerciante</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23E98A9A'/><text x='50%' y='65%' font-size='60' font-weight='bold' fill='white' text-anchor='middle' font-family='sans-serif'>O</text></svg>" />
+  <!-- Google Fonts Poppins -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React 18 / 19 UMD -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel Standalone for inline JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Poppins', 'sans-serif'],
+          },
+          colors: {
+            oweji: {
+              primary: '#E98A9A',
+              'primary-dark': '#C95F72',
+              background: '#FFF8FA',
+              surface: '#FFFFFF',
+              'soft-pink': '#FCE7EC',
+              text: '#252225',
+              'text-secondary': '#777277',
+              border: '#F0E5E8',
+              success: '#4FA982',
+              error: '#D95C68',
+              warning: '#D99A52',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #FFF8FA;
+      color: #252225;
+      font-family: 'Poppins', sans-serif;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #FFF8FA; }
+    ::-webkit-scrollbar-thumb { background: #F0E5E8; border-radius: 9999px; }
+    ::-webkit-scrollbar-thumb:hover { background: #E98A9A; }
+  </style>
+</head>
+<body class="bg-[#FFF8FA] text-[#252225] antialiased">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect, useMemo } = React;
+
+    // Helpers
+    const formatKz = (val) => 'Kz ' + (val || 0).toLocaleString('pt-AO') + ',00';
+
+    // SVG Icon Component helper
+    const Icon = ({ name, size = 18, className = "" }) => {
+      // Return Lucide icon element via data-lucide
+      return <i data-lucide={name} style={{ width: size, height: size, display: 'inline-block' }} className={className}></i>;
+    };
+
+    // Initial Mock Data
+    const initialStores = [
+      {
+        id: 'STORE-ROSA',
+        name: 'Pérola Rosa Boutique',
+        ownerName: 'Cátia Van-Dúnem',
+        email: 'catia@perolarosa.ao',
+        phone: '+244 923 456 789',
+        location: 'Condomínio Bela Vista, Talatona',
+        province: 'Luanda',
+        logo: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        status: 'active',
+        commissionRate: 8,
+        iban: 'AO06 0040 0000 1234 5678 9012 3',
+        bankName: 'Banco Angolano de Investimentos (BAI)',
+        totalSales: 485000,
+        productsCount: 8,
+      },
+      {
+        id: 'STORE-KILAMBA',
+        name: 'Moda Kilamba & Glamour',
+        ownerName: 'Manuel Neto',
+        email: 'manuel@kilamba.ao',
+        phone: '+244 934 112 233',
+        location: 'Centralidade do Kilamba, Bloco Q',
+        province: 'Luanda',
+        logo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+        status: 'active',
+        commissionRate: 10,
+        iban: 'AO06 0006 0000 9876 5432 1098 7',
+        bankName: 'Banco de Fomento Angola (BFA)',
+        totalSales: 320000,
+        productsCount: 6,
+      },
+      {
+        id: 'STORE-BENGUELA',
+        name: 'Estilo Benguela',
+        ownerName: 'Esperança Dias',
+        email: 'esperanca@estilobenguela.ao',
+        phone: '+244 912 998 877',
+        location: 'Praia Morena',
+        province: 'Benguela',
+        logo: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+        status: 'pending',
+        commissionRate: 10,
+        iban: 'AO06 0055 0000 4567 8901 2345 6',
+        bankName: 'Banco BIC',
+        totalSales: 0,
+        productsCount: 4,
+      }
+    ];
+
+    const initialProducts = [
+      {
+        id: 'prod-101',
+        name: 'Vestido Vermelho Poá Midi',
+        description: 'Vestido leve e marcante, corte elegante perfeito para eventos casuais.',
+        price: 18500,
+        category: 'vestidos',
+        condition: 'new',
+        stock: 7,
+        sizes: ['S', 'M', 'L'],
+        colors: ['#D95C68', '#FFFFFF'],
+        image: 'https://images.unsplash.com/photo-1572804013309-59a88b7e92f1?w=600&auto=format&fit=crop&q=80',
+        merchantId: 'STORE-ROSA',
+        merchantStoreName: 'Pérola Rosa Boutique',
+        available: true,
+      },
+      {
+        id: 'prod-102',
+        name: 'Vestido Rosa Algodão Listrado',
+        description: 'Corte fluido e tecido fresco para o clima de Luanda.',
+        price: 14200,
+        category: 'vestidos',
+        condition: 'semi-new',
+        stock: 2, // Alerta baixo
+        sizes: ['XS', 'S', 'M'],
+        colors: ['#E98A9A', '#8EC4D5'],
+        image: 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600&auto=format&fit=crop&q=80',
+        merchantId: 'STORE-ROSA',
+        merchantStoreName: 'Pérola Rosa Boutique',
+        available: true,
+      },
+      {
+        id: 'prod-103',
+        name: 'Vestido Amarelo Solar Tropical',
+        description: 'Peça fresca com silhueta descontraída e tecido drapeado.',
+        price: 22000,
+        category: 'vestidos',
+        condition: 'good-used',
+        stock: 1, // Alerta crítico
+        sizes: ['M', 'L'],
+        colors: ['#E7B84B'],
+        image: 'https://images.unsplash.com/photo-1496747611176-843222e1e57c?w=600&auto=format&fit=crop&q=80',
+        merchantId: 'STORE-ROSA',
+        merchantStoreName: 'Pérola Rosa Boutique',
+        available: true,
+      },
+      {
+        id: 'prod-104',
+        name: 'Camisa Feminina de Linho Puro',
+        description: 'Camisa clássica com corte moderno e botões madrepérola.',
+        price: 16500,
+        category: 'tops',
+        condition: 'new',
+        stock: 12,
+        sizes: ['S', 'M', 'L'],
+        colors: ['#FFFFFF'],
+        image: 'https://images.unsplash.com/photo-1598554747436-c9293d6a588f?w=600&auto=format&fit=crop&q=80',
+        merchantId: 'STORE-KILAMBA',
+        merchantStoreName: 'Moda Kilamba & Glamour',
+        available: true,
+      },
+      {
+        id: 'prod-105',
+        name: 'Saia Plissada Terracota',
+        description: 'Saia midi com caimento solto e cintura acetinada.',
+        price: 13900,
+        category: 'saias',
+        condition: 'semi-new',
+        stock: 5,
+        sizes: ['S', 'M'],
+        colors: ['#C95F72'],
+        image: 'https://images.unsplash.com/photo-1583496661160-fb5886a0aaaa?w=600&auto=format&fit=crop&q=80',
+        merchantId: 'STORE-KILAMBA',
+        merchantStoreName: 'Moda Kilamba & Glamour',
+        available: true,
+      },
+      {
+        id: 'prod-106',
+        name: 'Sandálias Clássicas de Pele Luanda',
+        description: 'Conforto e sofisticação em pele genuína.',
+        price: 29500,
+        category: 'calcado',
+        condition: 'new',
+        stock: 8,
+        sizes: ['37', '38', '39'],
+        colors: ['#B9866E'],
+        image: 'https://images.unsplash.com/photo-1543163521-1bf539c55dd2?w=600&auto=format&fit=crop&q=80',
+        merchantId: 'STORE-ROSA',
+        merchantStoreName: 'Pérola Rosa Boutique',
+        available: true,
+      }
+    ];
+
+    const initialOrders = [
+      {
+        id: 'OW-M7A9-1049',
+        createdAt: Date.now() - 1000 * 60 * 35,
+        customer: {
+          fullName: 'Ana Paula Lourenço',
+          phone: '+244 923 111 222',
+          province: 'Luanda',
+          municipality: 'Talatona',
+          address: 'Rua do Morro Bento II, Casa 44',
+          reference: 'Próximo ao Belas Shopping',
+        },
+        lines: [
+          {
+            productId: 'prod-101',
+            name: 'Vestido Vermelho Poá Midi',
+            unitPrice: 18500,
+            quantity: 1,
+            size: 'M',
+            merchantId: 'STORE-ROSA',
+            merchantStoreName: 'Pérola Rosa Boutique',
+          },
+          {
+            productId: 'prod-106',
+            name: 'Sandálias Clássicas de Pele Luanda',
+            unitPrice: 29500,
+            quantity: 1,
+            size: '38',
+            merchantId: 'STORE-ROSA',
+            merchantStoreName: 'Pérola Rosa Boutique',
+          }
+        ],
+        subtotal: 48000,
+        shipping: 500,
+        total: 48500,
+        status: 'payment-review', // Pendente de Validação Admin
+        paymentReference: 'MCX-98214-BAI',
+        receipt: {
+          name: 'Comprovativo_MCX_48500Kz.jpg',
+          url: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=900&auto=format&fit=crop&q=80',
+        }
+      },
+      {
+        id: 'OW-M7A8-1048',
+        createdAt: Date.now() - 1000 * 60 * 180,
+        customer: {
+          fullName: 'Marta Afonso dos Santos',
+          phone: '+244 945 889 001',
+          province: 'Luanda',
+          municipality: 'Maianga',
+          address: 'Bairro Alvalade, Rua Kwame Nkrumah',
+          reference: 'Atrás da Igreja Sagrada Família',
+        },
+        lines: [
+          {
+            productId: 'prod-104',
+            name: 'Camisa Feminina de Linho Puro',
+            unitPrice: 16500,
+            quantity: 2,
+            size: 'L',
+            merchantId: 'STORE-KILAMBA',
+            merchantStoreName: 'Moda Kilamba & Glamour',
+          }
+        ],
+        subtotal: 33000,
+        shipping: 500,
+        total: 33500,
+        status: 'payment-review', // Outro pendente
+        paymentReference: 'BFA-NET-55102',
+        receipt: {
+          name: 'Transf_BFA_33500Kz.jpg',
+          url: 'https://images.unsplash.com/photo-1554224154-26032ffc0d07?w=900&auto=format&fit=crop&q=80',
+        }
+      },
+      {
+        id: 'OW-M7A7-1047',
+        createdAt: Date.now() - 1000 * 60 * 60 * 12,
+        customer: {
+          fullName: 'Domingos Sebastião',
+          phone: '+244 912 334 455',
+          province: 'Luanda',
+          municipality: 'Belas',
+          address: 'Kilamba, Bloco B, Edifício B14',
+          reference: 'Próximo à rotunda principal',
+        },
+        lines: [
+          {
+            productId: 'prod-102',
+            name: 'Vestido Rosa Algodão Listrado',
+            unitPrice: 14200,
+            quantity: 1,
+            size: 'S',
+            merchantId: 'STORE-ROSA',
+            merchantStoreName: 'Pérola Rosa Boutique',
+          }
+        ],
+        subtotal: 14200,
+        shipping: 500,
+        total: 14700,
+        status: 'confirmed',
+        paymentReference: 'BAI-DIR-7741',
+      },
+      {
+        id: 'OW-M7A6-1046',
+        createdAt: Date.now() - 1000 * 60 * 60 * 24,
+        customer: {
+          fullName: 'Lúcia Domingos',
+          phone: '+244 933 778 990',
+          province: 'Benguela',
+          municipality: 'Benguela',
+          address: 'Bairro Benfica, Rua das Flores',
+          reference: 'Ao lado da farmácia central',
+        },
+        lines: [
+          {
+            productId: 'prod-105',
+            name: 'Saia Plissada Terracota',
+            unitPrice: 13900,
+            quantity: 1,
+            size: 'M',
+            merchantId: 'STORE-KILAMBA',
+            merchantStoreName: 'Moda Kilamba & Glamour',
+          }
+        ],
+        subtotal: 13900,
+        shipping: 500,
+        total: 14400,
+        status: 'preparing',
+        paymentReference: 'MCX-66102-BIC',
+      }
+    ];
+
+    // Status Badges Component
+    const OrderBadge = ({ status }) => {
+      const config = {
+        'awaiting-confirmation': { label: 'Por Confirmar', bg: '#FCF8E3', color: '#8A6D3B' },
+        'payment-review': { label: 'Validar Comprovativo', bg: '#FCE7EC', color: '#C95F72' },
+        'confirmed': { label: 'Confirmado', bg: '#EBF8FF', color: '#2B6CB0' },
+        'preparing': { label: 'Em Preparação', bg: '#FEF3C7', color: '#D97706' },
+        'shipped': { label: 'A Caminho', bg: '#F3E8FF', color: '#7C3AED' },
+        'delivered': { label: 'Entregue', bg: '#E5F3EA', color: '#286744' },
+        'cancelled': { label: 'Cancelado', bg: '#FEE2E2', color: '#DC2626' },
+      }[status] || { label: status, bg: '#EEE', color: '#666' };
+
+      return (
+        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold" style={{ backgroundColor: config.bg, color: config.color }}>
+          <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: config.color }}></span>
+          {config.label}
+        </span>
+      );
+    };
+
+    const ConditionBadge = ({ condition }) => {
+      const map = {
+        'new': { label: 'Novo', bg: '#E5F3EA', color: '#286744' },
+        'semi-new': { label: 'Seminovo', bg: '#EBF8FF', color: '#2B6CB0' },
+        'good-used': { label: 'Segunda mão', bg: '#FFF1D9', color: '#975A16' },
+      }[condition] || { label: condition, bg: '#EEE', color: '#555' };
+
+      return (
+        <span className="inline-block px-2 py-0.5 rounded text-[10px] font-bold" style={{ backgroundColor: map.bg, color: map.color }}>
+          {map.label}
+        </span>
+      );
+    };
+
+    // Main Dashboard Application Component
+    function App() {
+      // Current User Role: 'admin' or 'merchant'
+      const [role, setRole] = useState('admin');
+      const [activeStoreId, setActiveStoreId] = useState('STORE-ROSA');
+      const [currentTab, setCurrentTab] = useState('admin-dashboard');
+
+      // State stores
+      const [stores, setStores] = useState(initialStores);
+      const [products, setProducts] = useState(initialProducts);
+      const [orders, setOrders] = useState(initialOrders);
+
+      // Modals
+      const [viewingReceiptOrder, setViewingReceiptOrder] = useState(null);
+      const [productModalOpen, setProductModalOpen] = useState(false);
+      const [toast, setToast] = useState(null);
+
+      // Re-trigger lucide icons on render
+      useEffect(() => {
+        if (window.lucide) {
+          window.lucide.createIcons();
+        }
+      });
+
+      const showToast = (msg, type = 'success') => {
+        setToast({ msg, type });
+        setTimeout(() => setToast(null), 3500);
+      };
+
+      // Actions
+      const handleValidatePayment = (orderId, approved) => {
+        setOrders(prev => prev.map(o => {
+          if (o.id === orderId) {
+            return {
+              ...o,
+              status: approved ? 'confirmed' : 'cancelled',
+            };
+          }
+          return o;
+        }));
+        showToast(approved ? `Comprovativo aprovado! Encomenda #${orderId.slice(-5)} confirmada.` : `Comprovativo da encomenda #${orderId.slice(-5)} rejeitado.`, approved ? 'success' : 'error');
+        setViewingReceiptOrder(null);
+      };
+
+      const handleUpdateOrderStatus = (orderId, newStatus) => {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+        showToast(`Estado da encomenda #${orderId.slice(-5)} atualizado!`);
+      };
+
+      const handleToggleProduct = (prodId) => {
+        setProducts(prev => prev.map(p => p.id === prodId ? { ...p, available: !p.available } : p));
+        showToast('Visibilidade do produto atualizada.');
+      };
+
+      const handleUpdateStock = (prodId, val) => {
+        setProducts(prev => prev.map(p => p.id === prodId ? { ...p, stock: Math.max(0, val) } : p));
+        showToast('Stock atualizado!');
+      };
+
+      const handleAddProduct = (newProd) => {
+        const id = 'prod-' + Date.now().toString(36);
+        setProducts([ { ...newProd, id, available: true }, ...products ]);
+        setProductModalOpen(false);
+        showToast(`Produto "${newProd.name}" publicado com sucesso!`);
+      };
+
+      const currentStore = stores.find(s => s.id === activeStoreId) || stores[0];
+
+      // Computed counts
+      const pendingReviews = orders.filter(o => o.status === 'payment-review').length;
+      const merchantOrders = orders.filter(o => o.lines.some(l => l.merchantId === activeStoreId));
+      const merchantLowStock = products.filter(p => p.merchantId === activeStoreId && p.stock > 0 && p.stock <= 3);
+
+      return (
+        <div className="flex min-h-screen bg-[#FFF8FA] text-[#252225] font-sans antialiased">
+          {/* Toast */}
+          {toast && (
+            <div className={`fixed top-4 right-4 z-50 py-3 px-5 rounded-2xl shadow-xl text-xs font-bold flex items-center gap-2 text-white animate-bounce ${toast.type === 'error' ? 'bg-[#D95C68]' : 'bg-[#4FA982]'}`}>
+              <span>{toast.msg}</span>
+            </div>
+          )}
+
+          {/* SIDEBAR */}
+          <aside className="w-64 bg-white border-r border-[#F0E5E8] flex flex-col justify-between h-screen sticky top-0 flex-shrink-0 z-30">
+            <div>
+              {/* Logo */}
+              <div className="p-6 border-b border-[#F0E5E8]">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-[#E98A9A] flex items-center justify-center text-white font-black text-lg shadow-sm">
+                    O
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-extrabold text-lg text-[#252225] tracking-tight">OWEJI</span>
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-[#FCE7EC] text-[#C95F72]">
+                        Admin
+                      </span>
+                    </div>
+                    <p className="text-[10px] text-[#777277] font-medium tracking-wide">
+                      MARKETPLACE DE MODA
+                    </p>
+                  </div>
+                </div>
+
+                {/* Profile Pill */}
+                <div className="mt-4 p-2.5 rounded-xl bg-[#FFF8FA] border border-[#F0E5E8] flex items-center justify-between">
+                  <div className="truncate">
+                    <p className="text-xs font-bold text-[#252225] truncate">
+                      {role === 'admin' ? 'Adão Manuel' : currentStore.ownerName}
+                    </p>
+                    <p className="text-[10px] text-[#C95F72] font-semibold truncate">
+                      {role === 'admin' ? 'Administrador Geral' : currentStore.name}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Navigation Items */}
+              <nav className="p-4 space-y-1.5 text-xs">
+                <div className="px-3 pb-2 text-[10px] font-bold text-[#777277] uppercase tracking-wider">
+                  {role === 'admin' ? 'Gestão da Plataforma' : 'Gestão da Loja'}
+                </div>
+
+                {role === 'admin' ? (
+                  <>
+                    <button
+                      onClick={() => setCurrentTab('admin-dashboard')}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${currentTab === 'admin-dashboard' ? 'bg-[#FCE7EC] text-[#C95F72] shadow-xs' : 'text-[#777277] hover:bg-[#FFF8FA] hover:text-[#252225]'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="layout-dashboard" size={16} />
+                        <span>Visão Geral</span>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentTab('admin-financial')}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${currentTab === 'admin-financial' ? 'bg-[#FCE7EC] text-[#C95F72] shadow-xs' : 'text-[#777277] hover:bg-[#FFF8FA] hover:text-[#252225]'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="check-circle" size={16} />
+                        <span>Validação Bancária</span>
+                      </div>
+                      {pendingReviews > 0 && (
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#C95F72] text-white">
+                          {pendingReviews}
+                        </span>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentTab('admin-merchants')}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${currentTab === 'admin-merchants' ? 'bg-[#FCE7EC] text-[#C95F72] shadow-xs' : 'text-[#777277] hover:bg-[#FFF8FA] hover:text-[#252225]'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="store" size={16} />
+                        <span>Lojas & Comerciantes</span>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentTab('admin-catalog')}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${currentTab === 'admin-catalog' ? 'bg-[#FCE7EC] text-[#C95F72] shadow-xs' : 'text-[#777277] hover:bg-[#FFF8FA] hover:text-[#252225]'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="package" size={16} />
+                        <span>Catálogo Global</span>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentTab('admin-orders')}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${currentTab === 'admin-orders' ? 'bg-[#FCE7EC] text-[#C95F72] shadow-xs' : 'text-[#777277] hover:bg-[#FFF8FA] hover:text-[#252225]'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="shopping-bag" size={16} />
+                        <span>Todas as Encomendas</span>
+                      </div>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => setCurrentTab('merchant-dashboard')}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${currentTab === 'merchant-dashboard' ? 'bg-[#FCE7EC] text-[#C95F72] shadow-xs' : 'text-[#777277] hover:bg-[#FFF8FA] hover:text-[#252225]'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="layout-dashboard" size={16} />
+                        <span>Painel da Loja</span>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentTab('merchant-products')}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${currentTab === 'merchant-products' ? 'bg-[#FCE7EC] text-[#C95F72] shadow-xs' : 'text-[#777277] hover:bg-[#FFF8FA] hover:text-[#252225]'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="package" size={16} />
+                        <span>Os Meus Produtos</span>
+                      </div>
+                      {merchantLowStock.length > 0 && (
+                        <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#FFF1D9] text-[#975A16]">
+                          {merchantLowStock.length} baixo
+                        </span>
+                      )}
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentTab('merchant-orders')}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${currentTab === 'merchant-orders' ? 'bg-[#FCE7EC] text-[#C95F72] shadow-xs' : 'text-[#777277] hover:bg-[#FFF8FA] hover:text-[#252225]'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="shopping-bag" size={16} />
+                        <span>Encomendas</span>
+                      </div>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E98A9A] text-white">
+                        {merchantOrders.length}
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentTab('merchant-sales')}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${currentTab === 'merchant-sales' ? 'bg-[#FCE7EC] text-[#C95F72] shadow-xs' : 'text-[#777277] hover:bg-[#FFF8FA] hover:text-[#252225]'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="trending-up" size={16} />
+                        <span>Vendas & Repasses</span>
+                      </div>
+                    </button>
+
+                    <button
+                      onClick={() => setCurrentTab('merchant-profile')}
+                      className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-semibold transition-all ${currentTab === 'merchant-profile' ? 'bg-[#FCE7EC] text-[#C95F72] shadow-xs' : 'text-[#777277] hover:bg-[#FFF8FA] hover:text-[#252225]'}`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <Icon name="settings" size={16} />
+                        <span>Perfil & IBAN</span>
+                      </div>
+                    </button>
+                  </>
+                )}
+              </nav>
+            </div>
+
+            {/* Role Switcher Widget */}
+            <div className="p-4 border-t border-[#F0E5E8] bg-[#FFF8FA]/60 space-y-2">
+              <div className="text-[10px] font-bold uppercase tracking-wider text-[#777277]">
+                Trocar Perfil (Teste Rápido):
+              </div>
+              <div className="grid grid-cols-2 gap-1.5">
+                <button
+                  onClick={() => { setRole('admin'); setCurrentTab('admin-dashboard'); }}
+                  className={`py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all text-center ${role === 'admin' ? 'bg-[#C95F72] text-white shadow-xs' : 'bg-white border border-[#F0E5E8] text-[#777277]'}`}
+                >
+                  Admin Oweji
+                </button>
+                <button
+                  onClick={() => { setRole('merchant'); setActiveStoreId('STORE-ROSA'); setCurrentTab('merchant-dashboard'); }}
+                  className={`py-1.5 px-2 rounded-lg text-[11px] font-bold transition-all text-center ${role === 'merchant' && activeStoreId === 'STORE-ROSA' ? 'bg-[#E98A9A] text-white shadow-xs' : 'bg-white border border-[#F0E5E8] text-[#777277]'}`}
+                >
+                  Loja Rosa
+                </button>
+              </div>
+              <button
+                onClick={() => { setRole('merchant'); setActiveStoreId('STORE-KILAMBA'); setCurrentTab('merchant-dashboard'); }}
+                className={`w-full py-1 px-2 rounded-lg text-[10px] font-semibold transition-all text-center ${role === 'merchant' && activeStoreId === 'STORE-KILAMBA' ? 'bg-[#E98A9A] text-white shadow-xs' : 'bg-white border border-[#F0E5E8] text-[#777277]'}`}
+              >
+                Loja Kilamba
+              </button>
+              <div className="text-[9px] text-center text-[#777277] pt-1">
+                OWEJI Angola · Kwanzas (Kz)
+              </div>
+            </div>
+          </aside>
+
+          {/* MAIN WORKSPACE */}
+          <div className="flex-1 flex flex-col min-w-0">
+            {/* Header */}
+            <header className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-[#F0E5E8] px-8 py-4 z-20 flex items-center justify-between">
+              <div>
+                <h1 className="text-xl font-extrabold text-[#252225] tracking-tight">
+                  {role === 'admin' ? 'Painel Administrativo Geral' : `Painel · ${currentStore.name}`}
+                </h1>
+                <p className="text-xs text-[#777277] mt-0.5">
+                  {role === 'admin' ? 'Governança global, auditoria de pagamentos e moderação' : 'Gestão de catálogo, pedidos e faturamento'}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <span className={`px-3 py-1 rounded-full text-xs font-bold border ${role === 'admin' ? 'bg-[#FCE7EC] text-[#C95F72] border-[#E98A9A]/30' : 'bg-[#EBF8FF] text-[#2B6CB0] border-[#BEE3F8]'}`}>
+                  {role === 'admin' ? 'Administrador' : 'Comerciante'}
+                </span>
+
+                {role === 'admin' ? (
+                  pendingReviews > 0 && (
+                    <button
+                      onClick={() => setCurrentTab('admin-financial')}
+                      className="bg-[#C95F72] hover:bg-[#b04d5f] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                    >
+                      <Icon name="shield-check" size={15} />
+                      {pendingReviews} Comprovativo{pendingReviews > 1 ? 's' : ''} a validar
+                    </button>
+                  )
+                ) : (
+                  <button
+                    onClick={() => setProductModalOpen(true)}
+                    className="bg-[#E98A9A] hover:bg-[#C95F72] text-white px-3.5 py-2 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center gap-1.5"
+                  >
+                    <Icon name="plus" size={15} /> Nova Peça
+                  </button>
+                )}
+              </div>
+            </header>
+
+            {/* TAB CONTENT VIEWS */}
+            <main className="p-8 max-w-7xl w-full mx-auto space-y-6">
+
+              {/* ADMIN: DASHBOARD */}
+              {currentTab === 'admin-dashboard' && (
+                <div className="space-y-6">
+                  {pendingReviews > 0 && (
+                    <div className="bg-[#FFF1D9] border border-[#FEEBC8] rounded-2xl p-5 flex items-center justify-between">
+                      <div>
+                        <h4 className="text-sm font-bold text-[#975A16]">
+                          {pendingReviews} Comprovativo{pendingReviews > 1 ? 's' : ''} Bancário{pendingReviews > 1 ? 's' : ''} a aguardar validação!
+                        </h4>
+                        <p className="text-xs text-[#975A16]/80 mt-0.5">
+                          Valide as transferências Multicaixa / BAI / BFA para liberar os pedidos aos lojistas.
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => setCurrentTab('admin-financial')}
+                        className="bg-[#C95F72] hover:bg-[#b04d5f] text-white px-4 py-2 rounded-xl text-xs font-bold"
+                      >
+                        Auditar Agora
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Metrics */}
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Volume Total (GMV)</span>
+                      <div className="text-2xl font-bold text-[#252225] mt-1">
+                        {formatKz(orders.reduce((sum, o) => sum + o.total, 0))}
+                      </div>
+                      <span className="text-xs font-semibold text-[#4FA982] mt-1 block">↑ 14.2% este mês</span>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Total Encomendas</span>
+                      <div className="text-2xl font-bold text-[#252225] mt-1">{orders.length}</div>
+                      <span className="text-xs text-[#777277] mt-1 block">Em toda Angola</span>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Lojas Parceiras</span>
+                      <div className="text-2xl font-bold text-[#252225] mt-1">{stores.length}</div>
+                      <span className="text-xs text-[#4FA982] mt-1 block font-semibold">{stores.filter(s => s.status === 'active').length} ativas</span>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Comprovativos Pendentes</span>
+                      <div className="text-2xl font-bold text-[#C95F72] mt-1">{pendingReviews}</div>
+                      <span className="text-xs text-[#C95F72] mt-1 block font-semibold">Aguardando auditoria</span>
+                    </div>
+                  </div>
+
+                  {/* Orders Table */}
+                  <div className="bg-white rounded-2xl border border-[#F0E5E8] p-6">
+                    <h3 className="text-base font-bold text-[#252225] mb-4">Encomendas Recentes da Plataforma</h3>
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-[#F0E5E8] text-[#777277] text-[11px] uppercase font-bold">
+                          <th className="pb-3">ID</th>
+                          <th className="pb-3">Cliente</th>
+                          <th className="pb-3">Total (Kz)</th>
+                          <th className="pb-3">Estado</th>
+                          <th className="pb-3 text-right">Ação</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#F0E5E8]">
+                        {orders.map(order => (
+                          <tr key={order.id} className="hover:bg-[#FFF8FA]">
+                            <td className="py-3 font-mono font-bold">#{order.id.slice(-5)}</td>
+                            <td className="py-3 font-semibold">{order.customer.fullName}</td>
+                            <td className="py-3 font-bold text-[#C95F72]">{formatKz(order.total)}</td>
+                            <td className="py-3"><OrderBadge status={order.status} /></td>
+                            <td className="py-3 text-right">
+                              {order.receipt && (
+                                <button
+                                  onClick={() => setViewingReceiptOrder(order)}
+                                  className="text-xs font-bold text-[#C95F72] bg-[#FCE7EC] px-3 py-1.5 rounded-lg hover:bg-[#fad4dc]"
+                                >
+                                  Ver Comprovativo
+                                </button>
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* ADMIN: FINANCIAL REVIEW */}
+              {currentTab === 'admin-financial' && (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-2xl border border-[#F0E5E8] p-6">
+                    <h2 className="text-lg font-bold text-[#252225]">Auditoria de Comprovativos Bancários</h2>
+                    <p className="text-xs text-[#777277] mt-1">Confronte o comprovativo anexado pelo cliente com a conta bancária da OWEJI e confirme a encomenda.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    {orders.filter(o => o.receipt).map(order => (
+                      <div key={order.id} className="bg-white rounded-2xl border border-[#F0E5E8] p-4 space-y-3">
+                        <div className="flex justify-between items-center pb-2 border-b border-[#F0E5E8]">
+                          <span className="font-mono font-bold text-xs">#{order.id.slice(-5)}</span>
+                          <OrderBadge status={order.status} />
+                        </div>
+                        <img
+                          src={order.receipt.url}
+                          alt="Recibo"
+                          className="w-full h-44 object-cover rounded-xl border border-[#F0E5E8] cursor-pointer"
+                          onClick={() => setViewingReceiptOrder(order)}
+                        />
+                        <div className="text-xs space-y-1">
+                          <div className="flex justify-between font-bold">
+                            <span>Valor:</span>
+                            <span className="text-[#C95F72]">{formatKz(order.total)}</span>
+                          </div>
+                          <div className="flex justify-between text-[#777277]">
+                            <span>Ref:</span>
+                            <span className="font-mono text-[#252225] font-semibold">{order.paymentReference}</span>
+                          </div>
+                          <div className="flex justify-between text-[#777277]">
+                            <span>Cliente:</span>
+                            <span className="text-[#252225] font-semibold">{order.customer.fullName}</span>
+                          </div>
+                        </div>
+
+                        {order.status === 'payment-review' ? (
+                          <div className="grid grid-cols-2 gap-2 pt-2">
+                            <button
+                              onClick={() => handleValidatePayment(order.id, false)}
+                              className="py-2 bg-[#FEE2E2] hover:bg-[#fcc8c8] text-[#DC2626] font-bold text-xs rounded-xl"
+                            >
+                              Rejeitar
+                            </button>
+                            <button
+                              onClick={() => handleValidatePayment(order.id, true)}
+                              className="py-2 bg-[#E98A9A] hover:bg-[#C95F72] text-white font-bold text-xs rounded-xl"
+                            >
+                              Aprovar
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setViewingReceiptOrder(order)}
+                            className="w-full py-2 bg-[#FFF8FA] border border-[#F0E5E8] text-xs font-bold rounded-xl"
+                          >
+                            Ver Ficha Completa
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ADMIN: MERCHANTS */}
+              {currentTab === 'admin-merchants' && (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-2xl border border-[#F0E5E8] p-6">
+                    <h2 className="text-lg font-bold text-[#252225]">Lojas e Comerciantes Parceiros</h2>
+                    <p className="text-xs text-[#777277] mt-1">Gestão de aprovação e comissões do marketplace.</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {stores.map(st => (
+                      <div key={st.id} className="bg-white rounded-2xl border border-[#F0E5E8] p-5 space-y-4">
+                        <div className="flex items-center gap-3">
+                          <img src={st.logo} alt={st.name} className="w-12 h-12 rounded-xl object-cover border" />
+                          <div>
+                            <h3 className="font-bold text-sm text-[#252225]">{st.name}</h3>
+                            <p className="text-xs text-[#777277]">{st.ownerName} · {st.province}</p>
+                          </div>
+                        </div>
+                        <div className="text-xs space-y-1.5 p-3 rounded-xl bg-[#FFF8FA] border border-[#F0E5E8]">
+                          <div className="flex justify-between">
+                            <span className="text-[#777277]">IBAN:</span>
+                            <span className="font-mono text-[10px] text-[#252225] truncate max-w-[150px]">{st.iban}</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[#777277]">Comissão OWEJI:</span>
+                            <span className="font-bold text-[#C95F72]">{st.commissionRate}%</span>
+                          </div>
+                          <div className="flex justify-between">
+                            <span className="text-[#777277]">Vendas Totais:</span>
+                            <span className="font-bold">{formatKz(st.totalSales)}</span>
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          {st.status === 'pending' ? (
+                            <button
+                              onClick={() => { setStores(stores.map(s => s.id === st.id ? { ...s, status: 'active' } : s)); showToast(`Loja ${st.name} aprovada!`); }}
+                              className="w-full py-2 bg-[#E98A9A] text-white text-xs font-bold rounded-xl"
+                            >
+                              Aprovar Loja
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => { const newRate = prompt('Nova comissão % para ' + st.name, st.commissionRate); if (newRate) { setStores(stores.map(s => s.id === st.id ? { ...s, commissionRate: Number(newRate) } : s)); showToast('Comissão ajustada!'); } }}
+                              className="w-full py-2 bg-[#FFF8FA] border border-[#F0E5E8] hover:border-[#E98A9A] text-xs font-bold rounded-xl"
+                            >
+                              Ajustar Comissão ({st.commissionRate}%)
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ADMIN: CATALOG */}
+              {currentTab === 'admin-catalog' && (
+                <div className="bg-white rounded-2xl border border-[#F0E5E8] p-6 space-y-4">
+                  <h2 className="text-lg font-bold text-[#252225]">Catálogo Global & Moderação</h2>
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-[#F0E5E8] text-[#777277] text-[11px] uppercase font-bold">
+                        <th className="pb-3">Peça</th>
+                        <th className="pb-3">Loja</th>
+                        <th className="pb-3">Condição</th>
+                        <th className="pb-3">Preço</th>
+                        <th className="pb-3">Stock</th>
+                        <th className="pb-3 text-right">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0E5E8]">
+                      {products.map(prod => (
+                        <tr key={prod.id} className="hover:bg-[#FFF8FA]">
+                          <td className="py-3 flex items-center gap-2">
+                            <img src={prod.image} className="w-10 h-12 rounded object-cover" />
+                            <span className="font-bold text-[#252225]">{prod.name}</span>
+                          </td>
+                          <td className="py-3 font-semibold">{prod.merchantStoreName}</td>
+                          <td className="py-3"><ConditionBadge condition={prod.condition} /></td>
+                          <td className="py-3 font-bold text-[#C95F72]">{formatKz(prod.price)}</td>
+                          <td className="py-3 font-bold">{prod.stock} un.</td>
+                          <td className="py-3 text-right">
+                            <button
+                              onClick={() => handleToggleProduct(prod.id)}
+                              className={`px-3 py-1.5 rounded-lg text-xs font-bold ${prod.available ? 'bg-[#FCE7EC] text-[#C95F72]' : 'bg-gray-100 text-gray-500'}`}
+                            >
+                              {prod.available ? 'Pausar' : 'Ativar'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* ADMIN: ORDERS */}
+              {currentTab === 'admin-orders' && (
+                <div className="bg-white rounded-2xl border border-[#F0E5E8] p-6 space-y-4">
+                  <h2 className="text-lg font-bold text-[#252225]">Todas as Encomendas da Plataforma</h2>
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-[#F0E5E8] text-[#777277] text-[11px] uppercase font-bold">
+                        <th className="pb-3">ID</th>
+                        <th className="pb-3">Cliente</th>
+                        <th className="pb-3">Província</th>
+                        <th className="pb-3">Total</th>
+                        <th className="pb-3">Estado</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0E5E8]">
+                      {orders.map(order => (
+                        <tr key={order.id} className="hover:bg-[#FFF8FA]">
+                          <td className="py-3 font-mono font-bold">#{order.id.slice(-5)}</td>
+                          <td className="py-3 font-semibold">{order.customer.fullName}</td>
+                          <td className="py-3">{order.customer.municipality}, {order.customer.province}</td>
+                          <td className="py-3 font-bold text-[#C95F72]">{formatKz(order.total)}</td>
+                          <td className="py-3"><OrderBadge status={order.status} /></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* MERCHANT: DASHBOARD */}
+              {currentTab === 'merchant-dashboard' && (
+                <div className="space-y-6">
+                  {merchantLowStock.length > 0 && (
+                    <div className="bg-[#FFF1D9] border border-[#FEEBC8] rounded-2xl p-4 flex items-center justify-between">
+                      <div className="text-xs">
+                        <span className="font-bold text-[#975A16]">Atenção ao Stock: </span>
+                        <span className="text-[#975A16]/90">{merchantLowStock.map(p => `${p.name} (${p.stock} un.)`).join(', ')}</span>
+                      </div>
+                      <button onClick={() => setCurrentTab('merchant-products')} className="text-xs font-bold text-[#975A16] underline">
+                        Ajustar Stock
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Metrics */}
+                  <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Faturamento da Loja</span>
+                      <div className="text-2xl font-bold text-[#252225] mt-1">
+                        {formatKz(merchantOrders.reduce((sum, o) => {
+                          const lns = o.lines.filter(l => l.merchantId === activeStoreId);
+                          return sum + lns.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
+                        }, 0))}
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Encomendas Recebidas</span>
+                      <div className="text-2xl font-bold text-[#252225] mt-1">{merchantOrders.length}</div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Catálogo</span>
+                      <div className="text-2xl font-bold text-[#252225] mt-1">
+                        {products.filter(p => p.merchantId === activeStoreId).length} peças
+                      </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Stock Total</span>
+                      <div className="text-2xl font-bold text-[#C95F72] mt-1">
+                        {products.filter(p => p.merchantId === activeStoreId).reduce((s, p) => s + p.stock, 0)} un.
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recent Orders in Store */}
+                  <div className="bg-white rounded-2xl border border-[#F0E5E8] p-6">
+                    <h3 className="text-base font-bold text-[#252225] mb-4">Encomendas com Produtos da Sua Loja</h3>
+                    <table className="w-full text-left text-xs">
+                      <thead>
+                        <tr className="border-b border-[#F0E5E8] text-[#777277] text-[11px] uppercase font-bold">
+                          <th className="pb-3">ID</th>
+                          <th className="pb-3">Cliente</th>
+                          <th className="pb-3">Peças Compradas</th>
+                          <th className="pb-3">Subtotal Loja</th>
+                          <th className="pb-3">Estado</th>
+                          <th className="pb-3 text-right">Ação</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#F0E5E8]">
+                        {merchantOrders.map(order => {
+                          const lines = order.lines.filter(l => l.merchantId === activeStoreId);
+                          const sub = lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
+                          return (
+                            <tr key={order.id} className="hover:bg-[#FFF8FA]">
+                              <td className="py-3 font-mono font-bold">#{order.id.slice(-5)}</td>
+                              <td className="py-3 font-semibold">{order.customer.fullName}</td>
+                              <td className="py-3">{lines.map(l => `${l.quantity}x ${l.name}`).join(', ')}</td>
+                              <td className="py-3 font-bold text-[#C95F72]">{formatKz(sub)}</td>
+                              <td className="py-3"><OrderBadge status={order.status} /></td>
+                              <td className="py-3 text-right">
+                                {order.status === 'confirmed' && (
+                                  <button onClick={() => handleUpdateOrderStatus(order.id, 'preparing')} className="bg-[#E98A9A] text-white px-2.5 py-1 rounded-lg text-xs font-bold">
+                                    Preparar
+                                  </button>
+                                )}
+                                {order.status === 'preparing' && (
+                                  <button onClick={() => handleUpdateOrderStatus(order.id, 'shipped')} className="bg-[#7C3AED] text-white px-2.5 py-1 rounded-lg text-xs font-bold">
+                                    Enviar
+                                  </button>
+                                )}
+                                {order.status === 'shipped' && (
+                                  <button onClick={() => handleUpdateOrderStatus(order.id, 'delivered')} className="bg-[#286744] text-white px-2.5 py-1 rounded-lg text-xs font-bold">
+                                    Entregue
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* MERCHANT: PRODUCTS */}
+              {currentTab === 'merchant-products' && (
+                <div className="bg-white rounded-2xl border border-[#F0E5E8] p-6 space-y-4">
+                  <div className="flex justify-between items-center pb-4 border-b border-[#F0E5E8]">
+                    <h2 className="text-lg font-bold text-[#252225]">Os Meus Produtos · {currentStore.name}</h2>
+                    <button
+                      onClick={() => setProductModalOpen(true)}
+                      className="bg-[#E98A9A] hover:bg-[#C95F72] text-white px-4 py-2 rounded-xl text-xs font-bold"
+                    >
+                      + Publicar Nova Peça
+                    </button>
+                  </div>
+
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-[#F0E5E8] text-[#777277] text-[11px] uppercase font-bold">
+                        <th className="pb-3">Peça</th>
+                        <th className="pb-3">Condição</th>
+                        <th className="pb-3">Preço</th>
+                        <th className="pb-3">Stock</th>
+                        <th className="pb-3">Tamanhos</th>
+                        <th className="pb-3 text-right">Ação</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#F0E5E8]">
+                      {products.filter(p => p.merchantId === activeStoreId).map(prod => (
+                        <tr key={prod.id} className="hover:bg-[#FFF8FA]">
+                          <td className="py-3 flex items-center gap-3">
+                            <img src={prod.image} className="w-10 h-12 rounded-lg object-cover" />
+                            <span className="font-bold text-[#252225]">{prod.name}</span>
+                          </td>
+                          <td className="py-3"><ConditionBadge condition={prod.condition} /></td>
+                          <td className="py-3 font-bold text-[#C95F72]">{formatKz(prod.price)}</td>
+                          <td className="py-3">
+                            <input
+                              type="number"
+                              min="0"
+                              value={prod.stock}
+                              onChange={(e) => handleUpdateStock(prod.id, Number(e.target.value))}
+                              className="w-14 px-2 py-1 border rounded font-bold text-center"
+                            />
+                          </td>
+                          <td className="py-3">{prod.sizes.join(', ')}</td>
+                          <td className="py-3 text-right">
+                            <button
+                              onClick={() => handleToggleProduct(prod.id)}
+                              className={`px-3 py-1 rounded-lg font-bold text-xs ${prod.available ? 'bg-[#E5F3EA] text-[#286744]' : 'bg-gray-100 text-gray-400'}`}
+                            >
+                              {prod.available ? 'Ativo' : 'Pausado'}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* MERCHANT: ORDERS */}
+              {currentTab === 'merchant-orders' && (
+                <div className="bg-white rounded-2xl border border-[#F0E5E8] p-6 space-y-4">
+                  <h2 className="text-lg font-bold text-[#252225]">Encomendas dos Clientes</h2>
+                  <div className="space-y-4">
+                    {merchantOrders.map(order => {
+                      const lines = order.lines.filter(l => l.merchantId === activeStoreId);
+                      const sub = lines.reduce((s, l) => s + l.unitPrice * l.quantity, 0);
+
+                      return (
+                        <div key={order.id} className="p-4 rounded-2xl border border-[#F0E5E8] bg-[#FFF8FA]/40 space-y-3">
+                          <div className="flex justify-between items-center">
+                            <div>
+                              <span className="font-mono font-bold text-xs">#{order.id.slice(-5)}</span>
+                              <span className="text-xs text-[#777277] ml-2">Cliente: <strong className="text-[#252225]">{order.customer.fullName} ({order.customer.phone})</strong></span>
+                            </div>
+                            <OrderBadge status={order.status} />
+                          </div>
+
+                          <div className="text-xs bg-white p-3 rounded-xl border border-[#F0E5E8]">
+                            <div className="font-semibold text-[#252225]">Endereço de Entrega:</div>
+                            <p className="text-[#777277]">{order.customer.address}, {order.customer.municipality}, {order.customer.province}</p>
+                            {order.customer.reference && <p className="text-[#C95F72] text-[11px]">Ref: {order.customer.reference}</p>}
+                          </div>
+
+                          <div className="flex justify-between items-center text-xs">
+                            <div>
+                              <span className="text-[#777277]">Itens comprados: </span>
+                              <span className="font-bold text-[#252225]">{lines.map(l => `${l.quantity}x ${l.name} (${l.size})`).join(' · ')}</span>
+                            </div>
+                            <span className="text-sm font-bold text-[#C95F72]">{formatKz(sub)}</span>
+                          </div>
+
+                          <div className="pt-2 border-t border-[#F0E5E8] flex justify-end gap-2">
+                            {order.status === 'confirmed' && (
+                              <button onClick={() => handleUpdateOrderStatus(order.id, 'preparing')} className="bg-[#E98A9A] text-white px-3 py-1.5 rounded-xl font-bold text-xs">
+                                Iniciar Preparação
+                              </button>
+                            )}
+                            {order.status === 'preparing' && (
+                              <button onClick={() => handleUpdateOrderStatus(order.id, 'shipped')} className="bg-[#7C3AED] text-white px-3 py-1.5 rounded-xl font-bold text-xs">
+                                Fazer Envio / A Caminho
+                              </button>
+                            )}
+                            {order.status === 'shipped' && (
+                              <button onClick={() => handleUpdateOrderStatus(order.id, 'delivered')} className="bg-[#286744] text-white px-3 py-1.5 rounded-xl font-bold text-xs">
+                                Confirmar Entrega
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* MERCHANT: SALES */}
+              {currentTab === 'merchant-sales' && (
+                <div className="space-y-6">
+                  <div className="bg-white rounded-2xl border border-[#F0E5E8] p-6">
+                    <h2 className="text-lg font-bold text-[#252225]">Extrato Financeiro & Repasses</h2>
+                    <p className="text-xs text-[#777277] mt-1">Conta de Repasse: {currentStore.bankName} - {currentStore.iban}</p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Bruto em Vendas</span>
+                      <div className="text-2xl font-bold text-[#252225] mt-1">
+                        {formatKz(currentStore.totalSales)}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Comissão Plataforma ({currentStore.commissionRate}%)</span>
+                      <div className="text-2xl font-bold text-[#777277] mt-1">
+                        {formatKz(Math.round(currentStore.totalSales * (currentStore.commissionRate / 100)))}
+                      </div>
+                    </div>
+                    <div className="bg-white rounded-2xl border border-[#F0E5E8] p-5">
+                      <span className="text-xs font-medium text-[#777277]">Líquido a Receber</span>
+                      <div className="text-2xl font-bold text-[#4FA982] mt-1">
+                        {formatKz(Math.round(currentStore.totalSales * (1 - currentStore.commissionRate / 100)))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MERCHANT: PROFILE */}
+              {currentTab === 'merchant-profile' && (
+                <div className="bg-white rounded-2xl border border-[#F0E5E8] p-6 space-y-4 max-w-2xl mx-auto">
+                  <h2 className="text-lg font-bold text-[#252225]">Configurações da Loja & IBAN</h2>
+                  <div className="space-y-3 text-xs">
+                    <div>
+                      <label className="font-bold block mb-1">Nome da Loja:</label>
+                      <input type="text" defaultValue={currentStore.name} className="w-full px-3 py-2 border rounded-xl" />
+                    </div>
+                    <div>
+                      <label className="font-bold block mb-1">Telefone / WhatsApp:</label>
+                      <input type="text" defaultValue={currentStore.phone} className="w-full px-3 py-2 border rounded-xl" />
+                    </div>
+                    <div>
+                      <label className="font-bold block mb-1">Localização em Angola:</label>
+                      <input type="text" defaultValue={currentStore.location + ', ' + currentStore.province} className="w-full px-3 py-2 border rounded-xl" />
+                    </div>
+                    <div>
+                      <label className="font-bold block mb-1">IBAN para Repasses:</label>
+                      <input type="text" defaultValue={currentStore.iban} className="w-full font-mono px-3 py-2 border rounded-xl" />
+                    </div>
+                    <button
+                      onClick={() => showToast('Configurações da loja salvas com sucesso!')}
+                      className="w-full py-2.5 bg-[#E98A9A] hover:bg-[#C95F72] text-white font-bold rounded-xl mt-4"
+                    >
+                      Gravar Dados
+                    </button>
+                  </div>
+                </div>
+              )}
+            </main>
+          </div>
+
+          {/* RECEIPT VIEWER MODAL */}
+          {viewingReceiptOrder && (
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-2xl w-full p-6 space-y-4">
+                <div className="flex justify-between items-center pb-3 border-b border-[#F0E5E8]">
+                  <h3 className="font-bold text-sm">Comprovativo da Encomenda #{viewingReceiptOrder.id.slice(-5)}</h3>
+                  <button onClick={() => setViewingReceiptOrder(null)} className="text-lg font-bold">✕</button>
+                </div>
+                <img src={viewingReceiptOrder.receipt.url} className="w-full max-h-80 object-contain rounded-xl border" />
+                <div className="text-xs flex justify-between bg-[#FFF8FA] p-3 rounded-xl">
+                  <span>Total: <strong>{formatKz(viewingReceiptOrder.total)}</strong></span>
+                  <span>Ref: <strong className="font-mono">{viewingReceiptOrder.paymentReference}</strong></span>
+                  <span>Cliente: <strong>{viewingReceiptOrder.customer.fullName}</strong></span>
+                </div>
+                {role === 'admin' && viewingReceiptOrder.status === 'payment-review' && (
+                  <div className="flex gap-2 pt-2 border-t border-[#F0E5E8]">
+                    <button onClick={() => handleValidatePayment(viewingReceiptOrder.id, false)} className="flex-1 py-2 bg-[#FEE2E2] text-[#DC2626] font-bold rounded-xl text-xs">
+                      Rejeitar
+                    </button>
+                    <button onClick={() => handleValidatePayment(viewingReceiptOrder.id, true)} className="flex-1 py-2 bg-[#E98A9A] text-white font-bold rounded-xl text-xs">
+                      Aprovar Pagamento
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* NEW PRODUCT MODAL */}
+          {productModalOpen && (
+            <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4">
+                <div className="flex justify-between items-center pb-2 border-b border-[#F0E5E8]">
+                  <h3 className="font-bold text-sm">Publicar Nova Peça · {currentStore.name}</h3>
+                  <button onClick={() => setProductModalOpen(false)} className="text-lg font-bold">✕</button>
+                </div>
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  const form = e.target;
+                  handleAddProduct({
+                    name: form.pname.value,
+                    description: form.pdesc.value,
+                    price: Number(form.pprice.value),
+                    category: form.pcat.value,
+                    condition: form.pcond.value,
+                    stock: Number(form.pstock.value),
+                    sizes: ['S', 'M', 'L'],
+                    colors: ['#E98A9A'],
+                    image: form.pimg.value || 'https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600',
+                    merchantId: activeStoreId,
+                    merchantStoreName: currentStore.name,
+                  });
+                }} className="space-y-3 text-xs">
+                  <div>
+                    <label className="font-bold block mb-1">Nome da Peça:</label>
+                    <input name="pname" required placeholder="Ex: Vestido Estampado" className="w-full px-3 py-2 border rounded-xl" />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-bold block mb-1">Preço em Kwanzas (Kz):</label>
+                      <input name="pprice" type="number" required defaultValue="15000" className="w-full px-3 py-2 border rounded-xl" />
+                    </div>
+                    <div>
+                      <label className="font-bold block mb-1">Stock Inicial:</label>
+                      <input name="pstock" type="number" required defaultValue="5" className="w-full px-3 py-2 border rounded-xl" />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="font-bold block mb-1">Categoria:</label>
+                      <select name="pcat" className="w-full px-3 py-2 border rounded-xl">
+                        <option value="vestidos">Vestidos</option>
+                        <option value="tops">Tops & Camisas</option>
+                        <option value="saias">Saias</option>
+                        <option value="calcado">Calçado</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="font-bold block mb-1">Condição:</label>
+                      <select name="pcond" className="w-full px-3 py-2 border rounded-xl">
+                        <option value="new">Novo (Com etiqueta)</option>
+                        <option value="semi-new">Seminovo</option>
+                        <option value="good-used">Segunda mão</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="font-bold block mb-1">URL da Imagem:</label>
+                    <input name="pimg" placeholder="https://..." defaultValue="https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=600" className="w-full px-3 py-2 border rounded-xl" />
+                  </div>
+                  <div>
+                    <label className="font-bold block mb-1">Descrição:</label>
+                    <textarea name="pdesc" placeholder="Detalhes do tecido..." className="w-full px-3 py-2 border rounded-xl" rows="2"></textarea>
+                  </div>
+                  <div className="pt-2 flex justify-end gap-2">
+                    <button type="button" onClick={() => setProductModalOpen(false)} className="px-4 py-2 border rounded-xl">Cancelar</button>
+                    <button type="submit" className="px-4 py-2 bg-[#E98A9A] text-white font-bold rounded-xl">Publicar</button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>

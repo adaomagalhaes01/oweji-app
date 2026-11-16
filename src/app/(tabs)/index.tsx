@@ -98,8 +98,6 @@ export default function HomeScreen() {
           <View>
             <View style={styles.intro}>
               <Text style={styles.greeting}>Olá, {userName.split(' ')[0]}</Text>
-              <Text style={styles.headline}>Combine o seu estilo.</Text>
-              <Text style={styles.subtitle}>Peças escolhidas para se sentir bem, todos os dias.</Text>
             </View>
 
             <View style={styles.searchRow}>

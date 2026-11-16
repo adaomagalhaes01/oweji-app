@@ -22,10 +22,10 @@ export default function FavoritesScreen() {
         renderItem={({ item }: { item: Product }) => <ProductCard product={item} />}
         numColumns={2}
         columnWrapperStyle={styles.row}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, favorites.length === 0 && styles.emptyContent]}
         showsVerticalScrollIndicator={false}
-        ListHeaderComponent={<View style={styles.heading}><Text style={styles.kicker}>A SUA SELEÇÃO</Text><Text style={styles.title}>Favoritos</Text><Text style={styles.subtitle}>Guarde aqui as peças que conquistaram você.</Text></View>}
-        ListEmptyComponent={<View style={styles.empty}><Heart size={28} color={Palette.primary} /><Text style={styles.emptyTitle}>Ainda sem favoritos</Text><Text style={styles.emptyText}>Toque no coração de uma peça para encontrá-la aqui.</Text></View>}
+        ListHeaderComponent={<View style={styles.heading}><Text style={styles.title}>Favoritos</Text></View>}
+        ListEmptyComponent={<View style={styles.empty}><Heart size={28} color={Palette.primary} /><Text style={styles.emptyTitle}>Ainda sem favoritos</Text></View>}
       />
     </SafeAreaView>
   );
@@ -34,12 +34,10 @@ export default function FavoritesScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.background },
   content: { paddingBottom: 28 },
+  emptyContent: { flexGrow: 1 },
   heading: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 22 },
-  kicker: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 9, letterSpacing: 1.7 },
-  title: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 27, marginTop: 5 },
-  subtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12, marginTop: 6 },
+  title: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 27 },
   row: { gap: 13, paddingHorizontal: 20, marginBottom: 20 },
-  empty: { marginHorizontal: 20, marginTop: 30, padding: 28, alignItems: 'center', borderRadius: 20, backgroundColor: Palette.surface },
+  empty: { flex: 1, minHeight: 220, marginHorizontal: 20, padding: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: Palette.surface },
   emptyTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 16, marginTop: 12 },
-  emptyText: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', textAlign: 'center', fontSize: 12, marginTop: 6 },
 });

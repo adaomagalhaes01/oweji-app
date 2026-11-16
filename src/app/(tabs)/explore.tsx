@@ -50,9 +50,7 @@ export default function CategoriesScreen() {
         showsVerticalScrollIndicator={false}
         ListHeaderComponent={
           <View>
-            <Text style={styles.kicker}>EXPLORE A COLEÇÃO</Text>
             <Text style={styles.title}>Categorias</Text>
-            <Text style={styles.subtitle}>Encontre a peça certa para cada momento.</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
               {categories.map((category) => {
                 const active = category.id === activeCategory;
@@ -90,9 +88,7 @@ export default function CategoriesScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.background },
   content: { paddingTop: 18, paddingBottom: 28 },
-  kicker: { marginHorizontal: 20, color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 9, letterSpacing: 1.7 },
   title: { marginHorizontal: 20, color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 27, marginTop: 5 },
-  subtitle: { marginHorizontal: 20, color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12, marginTop: 6 },
   categoryList: { gap: 9, paddingHorizontal: 20, paddingTop: 20, paddingBottom: 21 },
   categoryChip: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 20, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
   categoryChipActive: { backgroundColor: Palette.primary, borderColor: Palette.primary },
