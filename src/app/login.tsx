@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Eye, EyeOff, LockKeyhole, Mail } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/palette';
@@ -33,7 +33,7 @@ export default function LoginScreen() {
         // Migrates the pre-existing single-account setup to the local account registry.
         const savedPassword = Platform.OS === 'web' ? null : await (await import('expo-secure-store')).getItemAsync('oweji-password');
         if (savedPassword && savedPassword !== password) { setError('A palavra-passe não está correcta.'); return; }
-        selectedAccount = { name: profile.name, email: profile.email, phone: profile.phone, password, accountType: profile.accountType, storeId: profile.storeId, storeName: profile.storeName, storeDescription: profile.storeDescription, storePhone: profile.storePhone, storeLocation: profile.storeLocation, storeLogoUri: profile.storeLogoUri, avatarUri: profile.avatarUri, addresses: profile.addresses };
+        selectedAccount = { name: profile.name, email: profile.email, phone: profile.phone, birthDate: profile.birthDate, address: profile.address, businessNif: profile.businessNif, merchantApprovalStatus: profile.merchantApprovalStatus, password, accountType: profile.accountType, storeId: profile.storeId, storeName: profile.storeName, storeDescription: profile.storeDescription, storePhone: profile.storePhone, storeLocation: profile.storeLocation, storeLogoUri: profile.storeLogoUri, avatarUri: profile.avatarUri, addresses: profile.addresses };
         await saveLocalAccount(selectedAccount);
       }
       setSignedIn(true);
@@ -48,7 +48,7 @@ export default function LoginScreen() {
           <View style={styles.intro}><Text style={styles.title}>Iniciar sessão</Text></View>
           <Text style={styles.label}>Email</Text><View style={styles.inputWrap}><Mail size={18} color={Palette.textSecondary} /><TextInput autoCapitalize="none" keyboardType="email-address" value={identity} onChangeText={setIdentity} placeholder="O seu email" placeholderTextColor={Palette.textSecondary} style={styles.input} accessibilityLabel="Email" /></View>
           <Text style={styles.label}>Senha</Text><View style={styles.inputWrap}><LockKeyhole size={18} color={Palette.textSecondary} /><TextInput value={password} onChangeText={setPassword} placeholder="A sua senha" placeholderTextColor={Palette.textSecondary} secureTextEntry={!showPassword} style={styles.input} accessibilityLabel="Senha" /><Pressable accessibilityRole="button" accessibilityLabel={showPassword ? 'Ocultar senha' : 'Mostrar senha'} onPress={() => setShowPassword(!showPassword)} hitSlop={8}>{showPassword ? <EyeOff size={18} color={Palette.textSecondary} /> : <Eye size={18} color={Palette.textSecondary} />}</Pressable></View>
-          <Pressable accessibilityRole="button" onPress={() => Alert.alert('Recuperar palavra-passe', 'Entre em contacto com o suporte OWEJI para recuperar o acesso à sua conta.')} style={styles.forgot}><Text style={styles.forgotText}>Esqueceu a palavra-passe?</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => router.push('/forgot-password')} style={styles.forgot}><Text style={styles.forgotText}>Esqueceu a palavra-passe?</Text></Pressable>
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
           <Pressable accessibilityRole="button" disabled={!valid} onPress={signIn} style={[styles.primaryButton, !valid && styles.disabled]}><Text style={styles.primaryText}>Iniciar sessão</Text></Pressable>
           <View style={styles.bottomLink}><Text style={styles.bottomText}>Ainda não tem uma conta? </Text><Pressable onPress={() => router.push('/register')}><Text style={styles.link}>Criar conta</Text></Pressable></View>

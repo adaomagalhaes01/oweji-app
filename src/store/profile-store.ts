@@ -3,12 +3,17 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 export type AccountType = 'customer' | 'merchant';
+export type MerchantApprovalStatus = 'pending' | 'approved' | 'rejected';
 export type DeliveryAddress = { id: string; label: string; fullName: string; phone: string; province: string; municipality: string; address: string; reference: string; isDefault: boolean };
 
 type Profile = {
   name: string;
   email: string;
   phone: string;
+  birthDate: string;
+  address: string;
+  businessNif: string;
+  merchantApprovalStatus: MerchantApprovalStatus | null;
   accountType: AccountType;
   storeId: string;
   storeName: string;
@@ -40,6 +45,10 @@ export const useProfileStore = create<ProfileState>()(
       name: 'Adão Manuel',
       email: 'adao@email.com',
       phone: '',
+      birthDate: '',
+      address: '',
+      businessNif: '',
+      merchantApprovalStatus: null,
       accountType: 'customer',
       storeId: '',
       storeName: '',
@@ -71,12 +80,18 @@ export const useProfileStore = create<ProfileState>()(
     {
       name: 'oweji-profile',
       storage: createJSONStorage(() => AsyncStorage),
-      version: 4,
+      version: 5,
       migrate: (persisted) => {
         const profile = (persisted ?? {}) as Partial<Profile>;
         const accountType: AccountType = profile.accountType === 'merchant' ? 'merchant' : 'customer';
         return {
           ...profile,
+          birthDate: typeof profile.birthDate === 'string' ? profile.birthDate : '',
+          address: typeof profile.address === 'string' ? profile.address : '',
+          businessNif: typeof profile.businessNif === 'string' ? profile.businessNif : '',
+          merchantApprovalStatus: profile.merchantApprovalStatus === 'pending' || profile.merchantApprovalStatus === 'rejected'
+            ? profile.merchantApprovalStatus
+            : accountType === 'merchant' ? 'approved' : null,
           accountType,
           storeName: typeof profile.storeName === 'string' ? profile.storeName : '',
           storeDescription: typeof profile.storeDescription === 'string' ? profile.storeDescription : '',

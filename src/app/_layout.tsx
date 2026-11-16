@@ -28,6 +28,7 @@ export default function RootLayout() {
         <Stack.Screen name="product/[id]" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="login" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="register" options={{ animation: 'slide_from_right' }} />
+        <Stack.Screen name="forgot-password" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="notifications" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="shop" options={{ animation: 'slide_from_right' }} />
         <Stack.Screen name="checkout" options={{ animation: 'slide_from_right' }} />

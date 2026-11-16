@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
     marginTop: 17,
   },
   splashShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(48, 20, 33, 0.48)' },
-  splashCenter: { alignItems: 'center', justifyContent: 'center', marginTop: -30 },
+  splashCenter: { alignItems: 'center', justifyContent: 'center' },
   splashMark: { width: 66, height: 66, borderRadius: 33, borderWidth: 1, borderColor: 'rgba(255,255,255,0.75)', alignItems: 'center', justifyContent: 'center' },
   markLetter: { color: '#FFFFFF', fontFamily: 'Poppins_400Regular', fontSize: 36, lineHeight: 42 },
   splashRule: { width: 32, height: 1, backgroundColor: 'rgba(255,255,255,0.8)', marginTop: 14 },

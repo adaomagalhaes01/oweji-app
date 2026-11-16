@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { AccountType, DeliveryAddress } from '@/store/profile-store';
+import type { AccountType, DeliveryAddress, MerchantApprovalStatus } from '@/store/profile-store';
 
 export type LocalAccount = {
-  name: string; email: string; phone: string; password: string; accountType: AccountType;
+  name: string; email: string; phone: string; birthDate: string; address: string; businessNif: string; merchantApprovalStatus: MerchantApprovalStatus | null; password: string; accountType: AccountType;
   storeId: string; storeName: string; storeDescription: string; storePhone: string;
   storeLocation: string; storeLogoUri: string | null; avatarUri: string | null;
   addresses: DeliveryAddress[];
@@ -10,7 +10,16 @@ export type LocalAccount = {
 
 const ACCOUNTS_KEY = 'oweji-local-accounts-v1';
 export async function getLocalAccounts(): Promise<LocalAccount[]> {
-  try { return JSON.parse(await AsyncStorage.getItem(ACCOUNTS_KEY) ?? '[]') as LocalAccount[]; }
+  try {
+    const saved = JSON.parse(await AsyncStorage.getItem(ACCOUNTS_KEY) ?? '[]') as Partial<LocalAccount>[];
+    return saved.map((account) => ({
+      ...account,
+      birthDate: account.birthDate ?? '',
+      address: account.address ?? '',
+      businessNif: account.businessNif ?? '',
+      merchantApprovalStatus: account.merchantApprovalStatus ?? (account.accountType === 'merchant' ? 'approved' : null),
+    }) as LocalAccount);
+  }
   catch { return []; }
 }
 export async function saveLocalAccount(account: LocalAccount) {

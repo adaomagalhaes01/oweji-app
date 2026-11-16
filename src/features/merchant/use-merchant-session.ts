@@ -7,6 +7,7 @@ import { useShopStore } from '@/store/shop-store';
 
 export function useMerchantSession() {
   const accountType = useProfileStore((state) => state.accountType);
+  const approvalStatus = useProfileStore((state) => state.merchantApprovalStatus);
   const storeId = useProfileStore((state) => state.storeId);
   const storeName = useProfileStore((state) => state.storeName);
   const updateProfile = useProfileStore((state) => state.updateProfile);
@@ -20,11 +21,11 @@ export function useMerchantSession() {
   );
 
   useEffect(() => {
-    if (accountType === 'merchant' && !storeId) updateProfile({ storeId: createStoreId() });
-  }, [accountType, storeId, updateProfile]);
+    if (accountType === 'merchant' && approvalStatus === 'approved' && !storeId) updateProfile({ storeId: createStoreId() });
+  }, [accountType, approvalStatus, storeId, updateProfile]);
 
   useEffect(() => {
-    if (accountType !== 'merchant' || !storeId) return;
+    if (accountType !== 'merchant' || approvalStatus !== 'approved' || !storeId) return;
     claimLegacyProducts(storeId);
     products.forEach((product) => {
       if (product.merchantId === storeId && !product.merchantStoreName && storeName) {
@@ -32,5 +33,5 @@ export function useMerchantSession() {
       }
     });
     claimLegacyOrderLines(storeId, ownedProductIds, storeName);
-  }, [accountType, claimLegacyOrderLines, claimLegacyProducts, ownedProductIds, products, storeId, storeName, updateProduct]);
+  }, [accountType, approvalStatus, claimLegacyOrderLines, claimLegacyProducts, ownedProductIds, products, storeId, storeName, updateProduct]);
 }

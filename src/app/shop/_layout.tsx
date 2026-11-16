@@ -8,11 +8,13 @@ import { useProfileStore } from '@/store/profile-store';
 
 export default function ShopLayout() {
   const accountType = useProfileStore((state) => state.accountType);
+  const merchantApprovalStatus = useProfileStore((state) => state.merchantApprovalStatus);
   const hasHydrated = useProfileStore((state) => state.hasHydrated);
   useMerchantSession();
 
   if (!hasHydrated) return <View style={styles.loading} />;
   if (accountType !== 'merchant') return <MerchantRestricted />;
+  if (merchantApprovalStatus !== 'approved') return <MerchantRestricted status={merchantApprovalStatus ?? 'pending'} />;
 
   return (
     <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: Palette.background } }}>

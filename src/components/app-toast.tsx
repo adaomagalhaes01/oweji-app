@@ -33,7 +33,8 @@ export function AppToast() {
     },
   }), [height, insets.bottom, insets.top, width]);
 
-  if (itemCount === 0 || pathname.replace(/\/$/, '').endsWith('/cart')) return null;
+  const currentPath = pathname.replace(/\/$/, '');
+  if (itemCount === 0 || currentPath.endsWith('/cart') || currentPath.endsWith('/checkout')) return null;
   return <View {...panResponder.panHandlers} style={[styles.floating, { left: position.left, top: position.top }]}>
     <Pressable accessibilityRole="button" accessibilityLabel={`Abrir carrinho com ${itemCount} ${itemCount === 1 ? 'produto' : 'produtos'}`} accessibilityLiveRegion="polite" onPress={() => router.push('/cart')} style={styles.button}>
       <ShoppingBag size={22} color={Palette.surface} />

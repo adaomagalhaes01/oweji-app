@@ -23,8 +23,6 @@ import { useCartStore } from '@/store/cart-store';
 import { useNotificationStore } from '@/store/notification-store';
 import { useProfileStore } from '@/store/profile-store';
 import { useShopStore } from '@/store/shop-store';
-import { productConditionOptions } from '@/features/products/conditions';
-import { ProductConditionBadge } from '@/components/products/product-condition-badge';
 
 const horizontalPadding = 20;
 
@@ -139,11 +137,6 @@ export default function HomeScreen() {
                 );
               })}
             </ScrollView>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
-              <Pressable accessibilityRole="button" accessibilityState={{ selected: condition === 'all' }} onPress={() => setCondition('all')} style={[styles.conditionChip, condition === 'all' && styles.conditionChipActive]}><Text style={[styles.conditionAll, condition === 'all' && styles.conditionAllActive]}>Todos os estados</Text></Pressable>
-              {productConditionOptions.map((option) => <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected: condition === option.value }} onPress={() => setCondition(option.value)} style={[styles.conditionChip, condition === option.value && styles.conditionChipActive]}><ProductConditionBadge condition={option.value} compact /></Pressable>)}
-            </ScrollView>
-
             <View style={styles.editorialCard}>
               <Image
                 source={require('@/assets/products/editorial.jpg')}
@@ -162,7 +155,6 @@ export default function HomeScreen() {
             <View style={styles.sectionHeading}>
               <View>
                 <Text style={styles.sectionTitle}>{query || activeCategory !== 'all' ? 'A sua seleção' : 'Em alta agora'}</Text>
-                <Text style={styles.sectionSubtitle}>Peças que merecem um lugar no seu armário</Text>
               </View>
               <Pressable accessibilityRole="button" onPress={() => setActiveCategory('all')}>
                 <Text style={styles.seeAll}>Ver tudo</Text>
@@ -186,7 +178,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: Palette.background },
   listContent: { paddingBottom: 28 },
   topBar: { height: 63, paddingHorizontal: horizontalPadding, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: Palette.background, zIndex: 1 },
-  brand: { flex: 1, alignItems: 'center' },
+  brand: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   headerSide: { width: 40, flexDirection: 'row', justifyContent: 'flex-start' },
   actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 7 },
   wordmark: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 21, letterSpacing: 3 },
@@ -214,10 +206,6 @@ const styles = StyleSheet.create({
   categoryChipActive: { backgroundColor: Palette.primary, borderColor: Palette.primary },
   categoryText: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
   categoryTextActive: { color: Palette.surface },
-  conditionChip: { minHeight: 31, justifyContent: 'center', paddingHorizontal: 8, borderRadius: 17, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
-  conditionChipActive: { borderColor: Palette.primary, backgroundColor: Palette.softPink },
-  conditionAll: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 9 },
-  conditionAllActive: { color: Palette.primaryDark },
   editorialCard: { height: 172, marginHorizontal: horizontalPadding, overflow: 'hidden', borderRadius: 20, justifyContent: 'center', backgroundColor: Palette.softPink },
   editorialShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(54, 25, 36, 0.23)' },
   editorialCopy: { marginLeft: 20 },
@@ -226,7 +214,6 @@ const styles = StyleSheet.create({
   editorialSubtitle: { color: Palette.surface, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 5 },
   sectionHeading: { marginHorizontal: horizontalPadding, marginTop: 26, marginBottom: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 18 },
-  sectionSubtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 4 },
   seeAll: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
   productRow: { gap: 13, paddingHorizontal: horizontalPadding, marginBottom: 20 },
   emptyState: { marginHorizontal: horizontalPadding, marginTop: 28, padding: 22, alignItems: 'center', borderRadius: 18, backgroundColor: Palette.surface },

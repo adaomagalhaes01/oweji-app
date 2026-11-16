@@ -11,7 +11,6 @@ import { getProductCatalog } from '@/features/products/catalog';
 import type { Product, ProductCondition } from '@/features/products/types';
 import { useShopStore } from '@/store/shop-store';
 import { productConditionOptions } from '@/features/products/conditions';
-import { ProductConditionBadge } from '@/components/products/product-condition-badge';
 
 export default function CategoriesScreen() {
   const [activeCategory, setActiveCategory] = useState('all');
@@ -70,7 +69,7 @@ export default function CategoriesScreen() {
             </ScrollView>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.categoryList}>
               <Pressable accessibilityRole="button" accessibilityState={{ selected: condition === 'all' }} onPress={() => setCondition('all')} style={[styles.conditionChip, condition === 'all' && styles.conditionChipActive]}><Text style={[styles.conditionAll, condition === 'all' && styles.conditionAllActive]}>Todos os estados</Text></Pressable>
-              {productConditionOptions.map((option) => <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected: condition === option.value }} onPress={() => setCondition(option.value)} style={[styles.conditionChip, condition === option.value && styles.conditionChipActive]}><ProductConditionBadge condition={option.value} compact /></Pressable>)}
+              {productConditionOptions.map((option) => <Pressable key={option.value} accessibilityRole="button" accessibilityState={{ selected: condition === option.value }} onPress={() => setCondition(option.value)} style={[styles.conditionChip, condition === option.value && styles.conditionChipActive]}><Text style={[styles.conditionAll, condition === option.value && styles.conditionAllActive]}>{option.compactLabel}</Text></Pressable>)}
             </ScrollView>
             <View style={styles.resultHeader}>
               <Text style={styles.resultTitle}>{activeLabel}</Text>

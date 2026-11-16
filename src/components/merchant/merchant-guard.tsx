@@ -1,12 +1,13 @@
 import { router } from 'expo-router';
-import { ArrowLeft, Store } from 'lucide-react-native';
+import { ArrowLeft, Clock3, Store } from 'lucide-react-native';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Palette } from '@/constants/palette';
 import { goBackOr } from '@/features/merchant/navigation';
 
-export function MerchantRestricted() {
+export function MerchantRestricted({ status }: { status?: 'pending' | 'rejected' }) {
+  const isPending = status === 'pending';
   return (
     <SafeAreaView edges={['top']} style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.wrap} showsVerticalScrollIndicator={false}>
@@ -14,12 +15,12 @@ export function MerchantRestricted() {
           <ArrowLeft size={20} color={Palette.text} />
         </Pressable>
         <View style={styles.content}>
-          <View style={styles.icon}><Store size={28} color={Palette.primaryDark} /></View>
-          <Text style={styles.title}>Área do comerciante</Text>
-          <Text style={styles.text}>Esta conta está registada como cliente. Crie uma conta de comerciante para publicar produtos e acompanhar as vendas da sua loja.</Text>
-          <Pressable accessibilityRole="button" onPress={() => router.replace('/register')} style={styles.primaryCTA}>
+          <View style={styles.icon}>{status ? <Clock3 size={28} color={Palette.primaryDark} /> : <Store size={28} color={Palette.primaryDark} />}</View>
+          <Text style={styles.title}>{isPending ? 'Loja pendente de aprovação' : status === 'rejected' ? 'Loja não aprovada' : 'Área do comerciante'}</Text>
+          <Text style={styles.text}>{isPending ? 'A sua loja está em análise por um administrador. Poderá publicar produtos e acompanhar as vendas após a aprovação.' : status === 'rejected' ? 'A sua loja não foi aprovada. Contacte o suporte OWEJI para mais informações.' : 'Esta conta está registada como cliente. Crie uma conta de comerciante para publicar produtos e acompanhar as vendas da sua loja.'}</Text>
+          {!status ? <Pressable accessibilityRole="button" onPress={() => router.replace('/register')} style={styles.primaryCTA}>
             <Text style={styles.primaryCTAText}>CRIAR CONTA DE COMERCIANTE</Text>
-          </Pressable>
+          </Pressable> : null}
           <Pressable accessibilityRole="button" onPress={() => router.replace('/profile')}>
             <Text style={styles.link}>Voltar ao perfil</Text>
           </Pressable>

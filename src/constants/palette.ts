@@ -1,7 +1,7 @@
 export const Palette = {
   primary: '#E98A9A',
   primaryDark: '#C95F72',
-  background: '#FFF8FA',
+  background: '#FFFFFF',
   surface: '#FFFFFF',
   softPink: '#FCE7EC',
   text: '#252225',
