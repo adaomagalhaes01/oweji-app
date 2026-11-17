@@ -8,12 +8,12 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { ProductCard } from '@/components/cards/product-card';
+import { TextField } from '@/components/ui/text-field';
 import { ProductFilterSheet, type ProductPriceRange, type ProductSortOption } from '@/components/products/product-filter-sheet';
 import { Palette } from '@/constants/palette';
 import { categories } from '@/features/products/data';
@@ -99,18 +99,15 @@ export default function HomeScreen() {
             </View>
 
             <View style={styles.searchRow}>
-              <View style={styles.searchBox}>
-                <Search size={19} color={Palette.textSecondary} />
-                <TextInput
-                  accessibilityLabel="Pesquisar produtos"
-                  placeholder="Pesquisar roupas, acessórios..."
-                  placeholderTextColor={Palette.textSecondary}
-                  value={query}
-                  onChangeText={setQuery}
-                  returnKeyType="search"
-                  style={styles.searchInput}
-                />
-              </View>
+              <TextField
+                containerStyle={styles.searchField}
+                icon={<Search size={19} color={Palette.textSecondary} />}
+                accessibilityLabel="Pesquisar produtos"
+                placeholder="Pesquisar roupas, acessórios..."
+                value={query}
+                onChangeText={setQuery}
+                returnKeyType="search"
+              />
               <Pressable accessibilityRole="button" accessibilityLabel="Filtrar e ordenar produtos" onPress={() => setFiltersVisible(true)} style={styles.filterButton}>
                 <SlidersHorizontal size={19} color={Palette.text} />
                 {(sortOption !== 'featured' || availableOnly || priceRange !== 'all') ? <View style={styles.filterDot} /> : null}
@@ -181,8 +178,8 @@ const styles = StyleSheet.create({
   brand: { position: 'absolute', left: 0, right: 0, alignItems: 'center' },
   headerSide: { width: 40, flexDirection: 'row', justifyContent: 'flex-start' },
   actions: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 7 },
-  wordmark: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 21, letterSpacing: 3 },
-  eyebrow: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 8, letterSpacing: 1.4, marginTop: 1 },
+  wordmark: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 23, letterSpacing: 3 },
+  eyebrow: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 9, letterSpacing: 1.4, marginTop: 1 },
   headerIcon: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 19, backgroundColor: Palette.surface },
   profileButton: { width: 38, height: 40, alignItems: 'center', justifyContent: 'center' },
   profileAvatarWrap: { width: 34, height: 34, borderRadius: 17, backgroundColor: Palette.surface },
@@ -191,32 +188,31 @@ const styles = StyleSheet.create({
   onlineIndicator: { position: 'absolute', right: -1, bottom: -1, width: 11, height: 11, borderRadius: 6, backgroundColor: '#32B768', borderWidth: 2, borderColor: Palette.background },
   notificationDot: { position: 'absolute', top: 8, right: 9, width: 8, height: 8, borderRadius: 4, backgroundColor: Palette.primary, borderWidth: 1, borderColor: Palette.surface },
   cartBadge: { position: 'absolute', top: 1, right: 0, minWidth: 15, height: 15, paddingHorizontal: 3, borderRadius: 8, alignItems: 'center', justifyContent: 'center', backgroundColor: Palette.primary },
-  cartBadgeText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 8, lineHeight: 11 },
+  cartBadgeText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 9, lineHeight: 12 },
   intro: { paddingHorizontal: horizontalPadding, marginTop: 26 },
-  greeting: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 13 },
-  headline: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 25, marginTop: 5, letterSpacing: -0.5 },
-  subtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12, marginTop: 6 },
+  greeting: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 14 },
+  headline: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 28, marginTop: 5, letterSpacing: -0.5 },
+  subtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 13, marginTop: 6 },
   searchRow: { flexDirection: 'row', gap: 10, paddingHorizontal: horizontalPadding, marginTop: 21 },
-  searchBox: { flex: 1, minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, backgroundColor: Palette.surface, borderRadius: 15, borderWidth: 1, borderColor: Palette.border },
-  searchInput: { flex: 1, color: Palette.text, fontFamily: 'Poppins_400Regular', fontSize: 12, paddingVertical: 0 },
+  searchField: { flex: 1 },
   filterButton: { width: 48, minHeight: 48, alignItems: 'center', justifyContent: 'center', backgroundColor: Palette.surface, borderRadius: 15, borderWidth: 1, borderColor: Palette.border },
   filterDot: { position: 'absolute', width: 7, height: 7, borderRadius: 4, top: 8, right: 8, backgroundColor: Palette.primary },
   categoryList: { gap: 9, paddingHorizontal: horizontalPadding, paddingTop: 17, paddingBottom: 19 },
   categoryChip: { paddingHorizontal: 16, paddingVertical: 9, borderRadius: 20, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
   categoryChipActive: { backgroundColor: Palette.primary, borderColor: Palette.primary },
-  categoryText: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
+  categoryText: { color: Palette.textSecondary, fontFamily: 'Poppins_600SemiBold', fontSize: 13 },
   categoryTextActive: { color: Palette.surface },
   editorialCard: { height: 172, marginHorizontal: horizontalPadding, overflow: 'hidden', borderRadius: 20, justifyContent: 'center', backgroundColor: Palette.softPink },
   editorialShade: { ...StyleSheet.absoluteFill, backgroundColor: 'rgba(54, 25, 36, 0.23)' },
   editorialCopy: { marginLeft: 20 },
-  editorialKicker: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 9, letterSpacing: 1.8 },
-  editorialTitle: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 27, lineHeight: 31, marginTop: 6 },
-  editorialSubtitle: { color: Palette.surface, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 5 },
+  editorialKicker: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 1.8 },
+  editorialTitle: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 30, lineHeight: 34, marginTop: 6 },
+  editorialSubtitle: { color: Palette.surface, fontFamily: 'Poppins_400Regular', fontSize: 12, marginTop: 5 },
   sectionHeading: { marginHorizontal: horizontalPadding, marginTop: 26, marginBottom: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 18 },
-  seeAll: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
+  sectionTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 20 },
+  seeAll: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 13 },
   productRow: { gap: 13, paddingHorizontal: horizontalPadding, marginBottom: 20 },
   emptyState: { marginHorizontal: horizontalPadding, marginTop: 28, padding: 22, alignItems: 'center', borderRadius: 18, backgroundColor: Palette.surface },
-  emptyTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 15 },
-  emptyMessage: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', textAlign: 'center', fontSize: 12, marginTop: 7 },
+  emptyTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 16 },
+  emptyMessage: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', textAlign: 'center', fontSize: 13, marginTop: 7 },
 });

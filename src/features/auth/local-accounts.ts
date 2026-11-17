@@ -29,6 +29,11 @@ export async function saveLocalAccount(account: LocalAccount) {
   if (index < 0) accounts.push(account); else accounts[index] = account;
   await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
 }
+export async function deleteLocalAccount(email: string) {
+  const normalized = email.trim().toLowerCase();
+  const accounts = (await getLocalAccounts()).filter((account) => account.email.trim().toLowerCase() !== normalized);
+  await AsyncStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts));
+}
 export async function findLocalAccount(identity: string) {
   const normalized = identity.trim().toLowerCase();
   const phone = normalizePhone(normalized);

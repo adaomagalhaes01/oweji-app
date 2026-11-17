@@ -35,6 +35,7 @@ type ProfileState = Profile & {
   updateProfile: (profile: Partial<Profile>) => void;
   saveAddress: (address: Omit<DeliveryAddress, 'id'> & { id?: string }) => void;
   removeAddress: (id: string) => void;
+  resetProfile: () => void;
   setSignedIn: (signedIn: boolean) => void;
   setHasHydrated: (hydrated: boolean) => void;
 };
@@ -73,6 +74,25 @@ export const useProfileStore = create<ProfileState>()(
         const addresses = state.addresses.filter((address) => address.id !== id);
         if (!addresses.some((address) => address.isDefault) && addresses.length) addresses[0].isDefault = true;
         return { addresses };
+      }),
+      resetProfile: () => set({
+        name: '',
+        email: '',
+        phone: '',
+        birthDate: '',
+        address: '',
+        businessNif: '',
+        merchantApprovalStatus: null,
+        accountType: 'customer',
+        storeId: '',
+        storeName: '',
+        storeDescription: '',
+        storePhone: '',
+        storeLocation: '',
+        storeLogoUri: null,
+        avatarUri: null,
+        addresses: [],
+        isSignedIn: false,
       }),
       setSignedIn: (isSignedIn) => set({ isSignedIn }),
       setHasHydrated: (hasHydrated) => set({ hasHydrated }),

@@ -2,10 +2,11 @@ import { Image } from 'expo-image';
 import { router } from 'expo-router';
 import { Camera, CheckCircle2, ChevronRight, CircleAlert, FileText, LogOut, MapPin, Phone, Store } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { MerchantHeader } from '@/components/merchant/merchant-header';
+import { TextField } from '@/components/ui/text-field';
 import { Palette } from '@/constants/palette';
 import { pickImageFromLibrary } from '@/features/media/pick-image';
 import { findLocalAccount, saveLocalAccount } from '@/features/auth/local-accounts';
@@ -152,24 +153,7 @@ export default function MerchantProfileScreen() {
 }
 
 function Field({ label, value, onChangeText, placeholder, icon, multiline = false, keyboardType = 'default' }: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; icon: React.ReactNode; multiline?: boolean; keyboardType?: 'default' | 'phone-pad' }) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={[styles.inputWrap, multiline && styles.inputWrapMultiline]}>
-        {icon}
-        <TextInput
-          accessibilityLabel={label}
-          value={value}
-          onChangeText={onChangeText}
-          placeholder={placeholder}
-          placeholderTextColor={Palette.textSecondary}
-          multiline={multiline}
-          keyboardType={keyboardType}
-          style={[styles.input, multiline && styles.inputMultiline]}
-        />
-      </View>
-    </View>
-  );
+  return <TextField label={label} containerStyle={styles.field} accessibilityLabel={label} icon={icon} value={value} onChangeText={onChangeText} placeholder={placeholder} multiline={multiline} keyboardType={keyboardType} />;
 }
 
 const styles = StyleSheet.create({
@@ -177,44 +161,44 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 110 },
   feedback: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, padding: 11, marginTop: 12, borderRadius: 13, backgroundColor: '#E5F3EA' },
   feedbackError: { backgroundColor: Palette.softPink },
-  feedbackText: { flex: 1, color: '#286744', fontFamily: 'Poppins_500Medium', fontSize: 11, lineHeight: 15 },
+  feedbackText: { flex: 1, color: '#286744', fontFamily: 'Poppins_500Medium', fontSize: 12, lineHeight: 16 },
   feedbackTextError: { color: Palette.error },
   logoCard: { flexDirection: 'row', alignItems: 'center', gap: 14, padding: 15, marginTop: 16, borderRadius: 17, backgroundColor: Palette.surface },
   logoWrap: { width: 72, height: 72 },
   logoImage: { width: 72, height: 72, borderRadius: 24 },
   logoFallback: { width: 72, height: 72, alignItems: 'center', justifyContent: 'center', borderRadius: 24, backgroundColor: Palette.softPink },
-  logoInitial: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 26 },
+  logoInitial: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 29 },
   cameraBadge: { position: 'absolute', right: -1, bottom: -1, width: 24, height: 24, alignItems: 'center', justifyContent: 'center', borderRadius: 12, backgroundColor: Palette.primary, borderWidth: 2, borderColor: Palette.surface },
   logoCopy: { flex: 1 },
-  logoTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 15 },
-  logoHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, lineHeight: 13, marginTop: 3 },
-  storeId: { color: Palette.primaryDark, fontFamily: 'Poppins_500Medium', fontSize: 9, marginTop: 5, letterSpacing: 0.3 },
+  logoTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 16 },
+  logoHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 14, marginTop: 3 },
+  storeId: { color: Palette.primaryDark, fontFamily: 'Poppins_500Medium', fontSize: 10, marginTop: 5, letterSpacing: 0.3 },
   statsCard: { flexDirection: 'row', alignItems: 'center', paddingVertical: 13, paddingHorizontal: 10, marginTop: 11, borderRadius: 16, backgroundColor: Palette.softPink },
   stat: { flex: 1, alignItems: 'center' },
-  statValue: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 15 },
-  statLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, textAlign: 'center', marginTop: 2 },
+  statValue: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 16 },
+  statLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, textAlign: 'center', marginTop: 2 },
   statDivider: { width: 1, height: 27, backgroundColor: 'rgba(201,95,114,0.18)' },
-  sectionTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 15, marginTop: 22, marginBottom: 9 },
+  sectionTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 16, marginTop: 22, marginBottom: 9 },
   formCard: { padding: 15, borderRadius: 17, backgroundColor: Palette.surface },
   field: { marginBottom: 11 },
-  fieldLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12, marginBottom: 5 },
+  fieldLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 13, marginBottom: 5 },
   inputWrap: { minHeight: 45, flexDirection: 'row', alignItems: 'center', gap: 9, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.background },
   inputWrapMultiline: { alignItems: 'flex-start', paddingTop: 11 },
-  input: { flex: 1, color: Palette.text, fontFamily: 'Poppins_400Regular', fontSize: 13, paddingVertical: 0 },
+  input: { flex: 1, color: Palette.text, fontFamily: 'Poppins_400Regular', fontSize: 14, paddingVertical: 0 },
   inputMultiline: { minHeight: 55, textAlignVertical: 'top' },
-  fieldError: { color: Palette.error, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: -5, marginBottom: 8 },
+  fieldError: { color: Palette.error, fontFamily: 'Poppins_400Regular', fontSize: 12, marginTop: -5, marginBottom: 8 },
   saveButton: { minHeight: 45, alignItems: 'center', justifyContent: 'center', marginTop: 2, borderRadius: 13, backgroundColor: Palette.primary },
-  saveText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 11, letterSpacing: 0.4 },
+  saveText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 0.4 },
   disabled: { opacity: 0.45 },
   menuCard: { paddingHorizontal: 14, borderRadius: 17, backgroundColor: Palette.surface },
   accountRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 13, borderBottomWidth: 1, borderBottomColor: Palette.border },
   accountIcon: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center', borderRadius: 11, backgroundColor: Palette.softPink },
   accountCopy: { flex: 1 },
-  accountName: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 13 },
-  accountEmail: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 2 },
-  accountHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 2 },
+  accountName: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 14 },
+  accountEmail: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12, marginTop: 2 },
+  accountHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 2 },
   menuRow: { minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: 1, borderBottomColor: Palette.border },
   menuRowLast: { borderBottomWidth: 0 },
-  menuLabel: { flex: 1, color: Palette.text, fontFamily: 'Poppins_500Medium', fontSize: 13 },
-  footnote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 14, marginTop: 12 },
+  menuLabel: { flex: 1, color: Palette.text, fontFamily: 'Poppins_500Medium', fontSize: 14 },
+  footnote: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12, lineHeight: 15, marginTop: 12 },
 });

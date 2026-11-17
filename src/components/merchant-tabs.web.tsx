@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   innerContainer: { width: '100%', maxWidth: 800, paddingVertical: 6, paddingHorizontal: 6, borderRadius: 22, flexDirection: 'row', alignItems: 'center', flexGrow: 1, gap: 4, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
   tabButton: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', gap: 3, borderRadius: 16 },
   tabButtonActive: { backgroundColor: Palette.softPink },
-  tabLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 11 },
+  tabLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 12 },
   tabLabelActive: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold' },
   pressed: { opacity: 0.7 },
 });

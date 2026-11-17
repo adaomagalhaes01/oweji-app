@@ -27,5 +27,5 @@ const styles = StyleSheet.create({
   container: { marginTop: 7 },
   track: { flexDirection: 'row', gap: 5 },
   segment: { flex: 1, height: 4, borderRadius: 2, backgroundColor: Palette.border },
-  label: { fontFamily: 'Poppins_500Medium', fontSize: 9, marginTop: 4 },
+  label: { fontFamily: 'Poppins_500Medium', fontSize: 10, marginTop: 4 },
 });

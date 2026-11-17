@@ -46,5 +46,5 @@ export function AppToast() {
 const styles = StyleSheet.create({
   floating: { position: 'absolute', width: 54, height: 54, zIndex: 50, elevation: 10 },
   button: { width: 54, height: 54, alignItems: 'center', justifyContent: 'center', borderRadius: 27, backgroundColor: Palette.primary, borderWidth: 2, borderColor: Palette.surface, shadowColor: '#351B27', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.24, shadowRadius: 8 },
-  badge: { position: 'absolute', top: -3, right: -4, minWidth: 21, height: 21, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderRadius: 11, backgroundColor: Palette.success, borderWidth: 2, borderColor: Palette.surface }, badgeText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 9 },
+  badge: { position: 'absolute', top: -3, right: -4, minWidth: 21, height: 21, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4, borderRadius: 11, backgroundColor: Palette.success, borderWidth: 2, borderColor: Palette.surface }, badgeText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 10 },
 });

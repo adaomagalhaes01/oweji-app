@@ -58,8 +58,8 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.75, transform: [{ scale: 0.96 }] },
   details: { paddingTop: 10 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  name: { flex: 1, color: Palette.text, fontFamily: 'Poppins_500Medium', fontSize: 13 },
-  price: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 14, marginTop: 4 },
+  name: { flex: 1, color: Palette.text, fontFamily: 'Poppins_500Medium', fontSize: 14 },
+  price: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 15, marginTop: 4 },
   availabilityDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: Palette.success },
   unavailable: { backgroundColor: Palette.error },
 });

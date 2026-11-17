@@ -36,8 +36,8 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 28 },
   emptyContent: { flexGrow: 1 },
   heading: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 22 },
-  title: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 27 },
+  title: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 30 },
   row: { gap: 13, paddingHorizontal: 20, marginBottom: 20 },
   empty: { flex: 1, minHeight: 220, marginHorizontal: 20, padding: 32, alignItems: 'center', justifyContent: 'center', borderRadius: 20, backgroundColor: Palette.surface },
-  emptyTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 16, marginTop: 12 },
+  emptyTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 18, marginTop: 12 },
 });

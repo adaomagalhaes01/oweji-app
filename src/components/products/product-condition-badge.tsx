@@ -23,6 +23,6 @@ export function ProductConditionBadge({ condition, compact = false }: { conditio
 const styles = StyleSheet.create({
   badge: { alignSelf: 'flex-start', maxWidth: '100%', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 20 },
   compact: { paddingHorizontal: 5, paddingVertical: 4 },
-  label: { fontFamily: 'Poppins_600SemiBold', fontSize: 10 },
-  compactLabel: { fontSize: 8 },
+  label: { fontFamily: 'Poppins_600SemiBold', fontSize: 11 },
+  compactLabel: { fontSize: 9 },
 });

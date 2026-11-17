@@ -52,13 +52,13 @@ export function MerchantHeader({ title, subtitle, kicker = 'ÁREA DO COMERCIANTE
 const styles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   copy: { flex: 1 },
-  kicker: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 1.5 },
-  title: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 22, marginTop: 2 },
-  identity: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 3 },
-  subtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 13, lineHeight: 17, marginTop: 9 },
+  kicker: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 11, letterSpacing: 1.5 },
+  title: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 24, marginTop: 2 },
+  identity: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12, marginTop: 3 },
+  subtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 14, lineHeight: 19, marginTop: 9 },
   profileButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 16, backgroundColor: Palette.softPink },
   notificationButton: { width: 40, height: 40, alignItems: 'center', justifyContent: 'center', borderRadius: 14, backgroundColor: Palette.surface },
   notificationDot: { position: 'absolute', top: 7, right: 7, width: 8, height: 8, borderRadius: 4, backgroundColor: Palette.primary, borderWidth: 1, borderColor: Palette.surface },
   profileImage: { width: 36, height: 36, borderRadius: 18 },
-  profileInitial: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 16 },
+  profileInitial: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 18 },
 });

@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
 import { ImagePlus, Image as ImageIcon, X } from 'lucide-react-native';
 import { useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Palette } from '@/constants/palette';
+import { TextField } from '@/components/ui/text-field';
 import { productCategoryOptions } from '@/features/merchant/product-options';
 import { pickImageFromLibrary } from '@/features/media/pick-image';
 import { productConditionOptions } from '@/features/products/conditions';
@@ -174,49 +175,35 @@ export function ProductForm({ initialProduct, submitting, onSubmit, onCancel }: 
 }
 
 function ShopField({ label, value, onChangeText, placeholder, multiline = false, keyboardType = 'default' }: { label: string; value: string; onChangeText: (value: string) => void; placeholder: string; multiline?: boolean; keyboardType?: 'default' | 'decimal-pad' | 'number-pad' }) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput
-        accessibilityLabel={label}
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor={Palette.textSecondary}
-        multiline={multiline}
-        keyboardType={keyboardType}
-        style={[styles.input, multiline && styles.multiline]}
-      />
-    </View>
-  );
+  return <TextField label={label} containerStyle={styles.field} accessibilityLabel={label} value={value} onChangeText={onChangeText} placeholder={placeholder} multiline={multiline} keyboardType={keyboardType} />;
 }
 
 const styles = StyleSheet.create({
   form: { padding: 15, borderRadius: 18, marginBottom: 13, backgroundColor: Palette.surface, borderWidth: 1, borderColor: Palette.border },
   formHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 12 },
   formHeaderCopy: { flex: 1 },
-  formTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 15 },
-  formSubtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 14, marginTop: 3 },
+  formTitle: { color: Palette.text, fontFamily: 'Poppins_700Bold', fontSize: 16 },
+  formSubtitle: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12, lineHeight: 15, marginTop: 3 },
   closeButton: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: Palette.background },
   field: { marginTop: 9 },
-  fieldLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 12, marginBottom: 5, marginTop: 11 },
-  fieldError: { color: Palette.error, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 4 },
-  formError: { color: Palette.error, fontFamily: 'Poppins_500Medium', fontSize: 11, lineHeight: 15, marginTop: 11 },
-  input: { minHeight: 43, paddingHorizontal: 12, borderRadius: 12, backgroundColor: Palette.background, borderWidth: 1, borderColor: Palette.border, color: Palette.text, fontFamily: 'Poppins_400Regular', fontSize: 13 },
+  fieldLabel: { color: Palette.text, fontFamily: 'Poppins_600SemiBold', fontSize: 13, marginBottom: 5, marginTop: 11 },
+  fieldError: { color: Palette.error, fontFamily: 'Poppins_400Regular', fontSize: 12, marginTop: 4 },
+  formError: { color: Palette.error, fontFamily: 'Poppins_500Medium', fontSize: 12, lineHeight: 16, marginTop: 11 },
+  input: { minHeight: 43, paddingHorizontal: 12, borderRadius: 12, backgroundColor: Palette.background, borderWidth: 1, borderColor: Palette.border, color: Palette.text, fontFamily: 'Poppins_400Regular', fontSize: 14 },
   multiline: { minHeight: 69, paddingTop: 10, textAlignVertical: 'top' },
   twoColumns: { flexDirection: 'row', gap: 9 },
   column: { flex: 1, minWidth: 0 },
   photoRow: { flexDirection: 'row', gap: 12 },
   photoPreview: { width: 82, height: 102, borderRadius: 13, backgroundColor: Palette.softPink },
   emptyPhoto: { alignItems: 'center', justifyContent: 'center', gap: 4 },
-  emptyPhotoText: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 10 },
-  optionHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 4 },
+  emptyPhotoText: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 11 },
+  optionHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 4 },
   photoActions: { flex: 1, justifyContent: 'center' },
   photoButton: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, paddingHorizontal: 10, borderRadius: 12, borderWidth: 1, borderStyle: 'dashed', borderColor: Palette.primary, backgroundColor: '#FFF8FA' },
-  photoButtonText: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 10, letterSpacing: 0.3 },
-  photoHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 6 },
+  photoButtonText: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold', fontSize: 11, letterSpacing: 0.3 },
+  photoHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, marginTop: 6 },
   removePhoto: { alignSelf: 'flex-start', paddingVertical: 4, marginTop: 4 },
-  removePhotoText: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 11 },
+  removePhotoText: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold', fontSize: 12 },
   imageChoices: { flexDirection: 'row', gap: 9, marginTop: 3 },
   imageChoice: { width: 50, height: 59, padding: 3, borderRadius: 11, borderWidth: 1, borderColor: Palette.border },
   imageChoiceSelected: { borderColor: Palette.primary, borderWidth: 2 },
@@ -225,7 +212,7 @@ const styles = StyleSheet.create({
   chip: { paddingHorizontal: 10, paddingVertical: 8, borderRadius: 11, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.background },
   sizeChip: { minWidth: 38, alignItems: 'center', paddingHorizontal: 9, paddingVertical: 8, borderRadius: 11, borderWidth: 1, borderColor: Palette.border, backgroundColor: Palette.background },
   chipSelected: { borderColor: Palette.primary, backgroundColor: Palette.softPink },
-  chipText: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 11 },
+  chipText: { color: Palette.textSecondary, fontFamily: 'Poppins_500Medium', fontSize: 12 },
   chipTextSelected: { color: Palette.primaryDark, fontFamily: 'Poppins_700Bold' },
   colorWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
   colorOption: { alignItems: 'center', width: 42 },
@@ -233,10 +220,10 @@ const styles = StyleSheet.create({
   colorOuterSelected: { borderColor: Palette.primaryDark },
   colorDot: { width: 23, height: 23, borderRadius: 12, borderWidth: 1, borderColor: Palette.border },
   whiteColor: { borderColor: '#D8CCD0' },
-  colorLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 9, marginTop: 2 },
+  colorLabel: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 10, marginTop: 2 },
   colorLabelSelected: { color: Palette.primaryDark, fontFamily: 'Poppins_600SemiBold' },
   publishButton: { minHeight: 47, alignItems: 'center', justifyContent: 'center', borderRadius: 13, marginTop: 15, backgroundColor: Palette.primary },
-  publishText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 12, letterSpacing: 0.4 },
+  publishText: { color: Palette.surface, fontFamily: 'Poppins_700Bold', fontSize: 13, letterSpacing: 0.4 },
   disabled: { opacity: 0.45 },
-  formHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 11, lineHeight: 14, textAlign: 'center', marginTop: 8 },
+  formHint: { color: Palette.textSecondary, fontFamily: 'Poppins_400Regular', fontSize: 12, lineHeight: 15, textAlign: 'center', marginTop: 8 },
 });
